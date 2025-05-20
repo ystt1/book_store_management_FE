@@ -1,0 +1,69 @@
+/* src/components/Common/ConfirmModal.module.css */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100; /* Cao hơn các modal khác */
+}
+
+.modal {
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+}
+
+.title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    color: #333;
+}
+
+.message {
+    margin-bottom: 25px;
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.btnConfirm {
+    background-color: #dc3545; /* Màu đỏ cho xác nhận xóa */
+    color: white;
+}
+.btnConfirm:hover {
+    background-color: #c82333;
+}
+
+.btnCancel {
+    background-color: #6c757d;
+    color: white;
+}
+.btnCancel:hover {
+    background-color: #5a6268;
+}

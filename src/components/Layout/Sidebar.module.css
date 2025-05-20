@@ -1,0 +1,165 @@
+/* src/components/Layout/Sidebar.module.css */
+.sidebar {
+    width: 260px; /* Chiều rộng khi mở */
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    height: 100vh;
+    position: fixed; /* Cố định sidebar */
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 3px 0 8px rgba(0,0,0,0.15);
+    transition: width 0.3s ease-in-out; /* Transition cho chiều rộng */
+    z-index: 1000;
+    overflow: hidden; /* Quan trọng để ẩn text khi thu gọn */
+}
+
+.sidebar.collapsed {
+    width: 70px; /* Chiều rộng khi thu gọn (chỉ đủ cho icons) */
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Để đặt nút toggle ở cuối */
+    padding: 18px 15px;
+    font-size: 1.3rem; /* Giảm nhẹ */
+    font-weight: 600;
+    color: #3498db;
+    border-bottom: 1px solid #34495e;
+    white-space: nowrap; /* Ngăn text xuống dòng */
+}
+
+.sidebarHeaderLogo {
+    display: flex;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.sidebar.collapsed .sidebarHeaderLogo {
+    opacity: 0;
+    visibility: hidden; /* Ẩn hoàn toàn logo text khi thu gọn */
+    width: 0;
+}
+
+
+.sidebarHeaderLogo .icon { /* Icon cho logo */
+    font-size: 1.5rem;
+    margin-right: 10px;
+}
+
+.toggleButton {
+    background: none;
+    border: none;
+    color: #bdc3c7;
+    font-size: 1.5rem; /* Kích thước icon toggle */
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+.toggleButton:hover {
+    color: #ffffff;
+}
+
+/* Khi sidebar thu gọn, nút toggle vẫn ở vị trí đó */
+.sidebar.collapsed .sidebarHeader {
+    justify-content: center; /* Căn giữa nút toggle khi chỉ còn nó */
+}
+
+
+.sidebarNav {
+    flex-grow: 1;
+    overflow-y: auto; /* Cho phép cuộn nếu nav dài */
+    overflow-x: hidden;
+    padding-top: 15px;
+}
+
+.sidebarNav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebarNav li {
+    margin: 0 10px 8px 10px; /* Thêm margin ngang */
+}
+
+.sidebarNav a {
+    display: flex;
+    align-items: center;
+    color: #bdc3c7;
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    white-space: nowrap; /* Ngăn text xuống dòng */
+    overflow: hidden; /* Ẩn text khi thu gọn */
+}
+
+.sidebarNav a .icon {
+    min-width: 40px; /* Đảm bảo icon có không gian cố định, căn giữa */
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem; /* Kích thước icon nav */
+    margin-right: 10px; /* Khoảng cách giữa icon và text */
+    transition: margin-right 0.3s ease-in-out;
+}
+
+.sidebarNav a .navText {
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out 0.1s; /* Text mờ sau icon */
+}
+
+.sidebar.collapsed .sidebarNav a {
+    justify-content: center; /* Căn giữa icon khi text ẩn */
+    padding: 12px 0; /* Điều chỉnh padding khi thu gọn */
+}
+
+.sidebar.collapsed .sidebarNav a .icon {
+    margin-right: 0; /* Bỏ margin khi text ẩn */
+}
+
+.sidebar.collapsed .sidebarNav a .navText {
+    opacity: 0;
+    width: 0; /* Ẩn text hoàn toàn */
+}
+
+
+.sidebarNav a:hover {
+    background-color: #34495e;
+    color: #ffffff;
+}
+
+.sidebarNav a.active {
+    background-color: #3498db;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.sidebarFooter {
+    padding: 15px;
+    border-top: 1px solid #34495e;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.sidebarFooter a {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Căn giữa khi chỉ có icon */
+    color: #bdc3c7;
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 8px 0;
+}
+.sidebar.collapsed .sidebarFooter a .navText{
+    display: none;
+}
+.sidebarFooter a:hover {
+    color: #ffffff;
+}

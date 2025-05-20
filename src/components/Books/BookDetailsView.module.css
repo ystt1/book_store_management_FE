@@ -1,0 +1,122 @@
+/* src/components/Books/BookDetailsView.module.css */
+.bookDetailsOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1060;
+    padding: 20px;
+}
+
+.bookDetailsContent {
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.closeDetailsButton {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px; /* Thêm padding để dễ click hơn */
+}
+.closeDetailsButton:hover {
+    color: #333;
+}
+
+.bookDetailsContent h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.7rem;
+    color: #007bff;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.detailsGrid {
+    display: grid; /* Chuyển sang grid để dễ quản lý hơn */
+    grid-template-columns: 220px 1fr; /* Cột ảnh cố định, cột thông tin linh hoạt */
+    gap: 25px;
+}
+
+@media (max-width: 768px) { /* Responsive cho grid */
+    .detailsGrid {
+        grid-template-columns: 1fr; /* Một cột trên màn hình nhỏ */
+    }
+    .detailsImageContainer {
+        text-align: center; /* Căn giữa ảnh trên mobile */
+    }
+}
+
+
+.detailsImageContainer img {
+    width: 100%;
+    max-width: 200px; /* Có thể tăng/giảm tùy ý */
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
+.detailsInfo p {
+    margin-bottom: 12px; /* Tăng khoảng cách */
+    line-height: 1.6;
+    font-size: 0.95rem;
+    display: flex; /* Cho phép label và value căn chỉnh */
+    /* flex-wrap: wrap; */ /* Cho phép xuống dòng nếu value quá dài */
+}
+.detailsInfo p strong {
+    color: #495057; /* Màu đậm hơn cho label */
+    min-width: 130px; /* Tăng min-width */
+    display: inline-block;
+    margin-right: 8px; /* Khoảng cách giữa label và value */
+    font-weight: 600; /* Đậm hơn */
+}
+.detailsInfo p span { /* Value */
+    color: #212529;
+    word-break: break-word; /* Xử lý từ dài */
+}
+
+
+.detailsActions {
+    margin-top: 30px; /* Tăng khoảng cách */
+    padding-top: 20px; /* Thêm padding trên */
+    border-top: 1px solid #eee; /* Phân cách actions */
+    text-align: right;
+}
+
+/* Nút trong details view (có thể dùng chung class .btn từ BookManagementPage.module.css nếu import nó) */
+/* Hoặc định nghĩa riêng */
+.detailsActions .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+.detailsActions .btnPrimary {
+    background-color: #007bff;
+    color: white;
+}
+.detailsActions .btnPrimary:hover {
+    background-color: #0056b3;
+}

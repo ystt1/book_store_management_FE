@@ -1,0 +1,116 @@
+/* src/pages/ReportsPage.module.css */
+.pageContainer {
+    padding: 20px;
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+.pageHeader h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #2c3e50;
+}
+
+.globalTimeFilter {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.globalTimeFilter h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #495057;
+}
+.timeSelectors {
+    display: flex;
+    flex-wrap: wrap; /* Cho phép xuống dòng trên mobile */
+    gap: 15px;
+    align-items: center;
+}
+.timeSelect { /* Cho react-select */
+    min-width: 180px; /* Độ rộng tối thiểu */
+    flex-grow: 1; /* Cho phép co giãn */
+}
+.dateInput {
+    padding: 8px 10px; /* Gần giống padding của react-select control */
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    min-height: 38px; /* Chiều cao tương tự react-select */
+    box-sizing: border-box;
+    flex-grow: 1;
+}
+.dateInput:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+/* Style cho react-select trên trang báo cáo (nếu cần ghi đè global) */
+.react-select-container-report .react-select-report__control {
+    border-radius: 4px !important;
+    border-color: #ced4da !important;
+    min-height: 38px !important;
+    height: 38px !important; /* Cố định chiều cao */
+}
+.react-select-container-report .react-select-report__value-container {
+    height: 36px !important;
+    padding: 0 8px !important;
+}
+.react-select-container-report .react-select-report__indicators {
+    height: 36px !important;
+}
+
+
+.reportsGrid {
+    display: grid;
+    grid-template-columns: 1fr; /* Mặc định 1 cột */
+    gap: 25px;
+}
+
+@media (min-width: 992px) { /* 2 cột trên màn hình lớn */
+    .reportsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (min-width: 1400px) { /* Có thể là 3 cột nếu màn hình rất lớn */
+    /* .reportsGrid {
+        grid-template-columns: repeat(3, 1fr);
+    } */
+}
+
+/* Ví dụ style cho danh sách sản phẩm bán chạy */
+.topProductList {
+    list-style-type: none;
+    padding-left: 0;
+    max-height: 300px; /* Giới hạn chiều cao */
+    overflow-y: auto;
+}
+.topProductList li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 5px;
+    border-bottom: 1px dotted #eee;
+    font-size: 0.9rem;
+}
+.topProductList li:last-child {
+    border-bottom: none;
+}
+.topProductList li span:first-child {
+    color: #007bff;
+    font-weight: 500;
+}
+.topProductList li span:last-child {
+    color: #28a745;
+    font-weight: bold;
+}
+
+/* Các style khác cho hiển thị báo cáo tồn kho, lương... */

@@ -1,0 +1,115 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1070; /* Dưới ConfirmModal */
+}
+
+.modal { /* ... copy, chỉnh max-width: 800px; hoặc rộng hơn ... */
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 900px; /* Rộng hơn để chứa bảng */
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+.closeButton {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+}
+.closeButton:hover{
+    color: #333;
+}
+
+.title { /* ... copy từ AttributeModal.module.css ... */
+    text-align: left; /* Căn trái tiêu đề */
+}
+
+.historyTableContainer {
+    margin-top: 20px;
+    max-height: 400px; /* Giới hạn chiều cao bảng, cho phép cuộn */
+    overflow-y: auto;
+    border: 1px solid #eee;
+}
+
+.historyTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.historyTable th, .historyTable td {
+    border: 1px solid #e0e0e0;
+    padding: 8px 10px;
+    text-align: left;
+}
+
+.historyTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.historyTable tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.centerText { text-align: center; }
+.rightText { text-align: right; }
+.rightTextBold { text-align: right; font-weight: bold; }
+
+
+.noHistory {
+    text-align: center;
+    padding: 30px 0;
+    font-style: italic;
+    color: #6c757d;
+}
+
+.actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.btnSubmit {
+    background-color: #007bff;
+    color: white;
+}
+.btnSubmit:hover {
+    background-color: #0056b3;
+}
+
+.btnCancel {
+    background-color: #6c757d;
+    color: white;
+}
+.btnCancel:hover {
+    background-color: #5a6268;
+}

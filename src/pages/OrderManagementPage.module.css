@@ -1,0 +1,249 @@
+.advancedFilterBar .filterGrid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Điều chỉnh cho filter đơn hàng */
+}
+
+/* src/pages/AttributeManagementPage.module.css */
+.pageContainer {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Giảm margin */
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.pageHeader h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.btn { /* Nút chung */
+    padding: 10px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.btnPrimary {
+    background-color: #007bff;
+    color: white;
+}
+.btnPrimary:hover {
+    background-color: #0056b3;
+}
+
+.tabContainer {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.tabButton {
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 1rem;
+    color: #495057;
+    margin-right: 5px; /* Khoảng cách giữa các tab */
+    border-bottom: 2px solid transparent; /* Đường gạch dưới mặc định */
+    transition: color 0.2s, border-bottom-color 0.2s;
+}
+
+.tabButton.active {
+    color: #007bff;
+    font-weight: 600;
+    border-bottom-color: #007bff; /* Đường gạch dưới cho tab active */
+}
+
+.tabButton:hover:not(.active) {
+    color: #0056b3;
+}
+
+.tabContent {
+    /* Style cho nội dung của tab nếu cần */
+}
+
+.contentHeader { /* Header cho mỗi tab (ví dụ: tên tab và nút thêm) */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.contentHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #495057;
+}
+
+/* ... (các style đã có) ... */
+
+.contentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Tăng margin */
+}
+.contentHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #495057;
+}
+
+.headerActions { /* Wrapper cho tìm kiếm và nút thêm */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.controlsBar {
+    display: flex;
+    justify-content: space-between; /* Tạm thời bỏ để xem cách chúng tự sắp xếp */
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 15px; /* Thêm gap để có khoảng cách giữa chúng */
+}
+
+.searchWrapper {
+    position: relative;
+    /* flex-grow: 1; Có thể không cần nếu muốn nút Thêm ở sát bên */
+}
+
+.searchIcon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.searchInput {
+    padding: 9px 12px 9px 30px; /* Điều chỉnh padding */
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    min-width: 250px; /* Độ rộng tối thiểu cho ô tìm kiếm */
+}
+.searchInput:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+
+
+
+.btnToggleFilter {
+    padding: 10px 15px;
+    background-color: #f8f9fa; /* Màu nền sáng hơn */
+    color: #495057; /* Màu text tối hơn */
+    border: 1px solid #ced4da; /* Thêm border */
+    border-radius: 5px; /* Bo tròn vừa phải */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.btnToggleFilter:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+.btnToggleFilter svg { /* Style cho icon chevron */
+    transition: transform 0.3s ease;
+}
+/* Không cần xoay icon nữa nếu text nút thay đổi */
+
+
+.advancedFilterBar {
+    background-color: #fdfdff; /* Màu nền hơi khác một chút */
+    padding: 0px; /* Sẽ thêm padding khi mở */
+    border-radius: 6px;
+    margin-bottom: 25px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden; /* Quan trọng cho transition max-height */
+    max-height: 0; /* Mặc định ẩn */
+    opacity: 0; /* Mặc định ẩn */
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out 0.1s, padding 0.4s ease-in-out, margin-bottom 0.4s ease-in-out;
+}
+
+.advancedFilterBar.open { /* Class để mở rộng */
+    max-height: 500px; /* Chiều cao đủ lớn để chứa nội dung */
+    opacity: 1;
+    padding: 20px;
+    margin-bottom: 25px; /* Giữ lại margin khi mở */
+}
+
+.advancedFilterTitle {
+    font-size: 1.1rem;
+    color: #343a40;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+
+.filterGrid {
+    display: grid;
+    /* grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); */
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); /* Sử dụng auto-fill để linh hoạt hơn */
+    gap: 15px 20px; /* row-gap column-gap */
+}
+
+.filterControl {
+    width: 100%;
+    padding: 9px 12px; /* Đồng nhất padding */
+    border: 1px solid #ced4da;
+    border-radius: 4px; /* Bo tròn nhẹ */
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.searchWrapper {
+    position: relative;
+    flex-grow: 1; 
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.mainSearchInput {
+    width: 100%;
+    padding: 10px 15px 10px 35px;
+    border: 1px solid #ced4da;
+    border-radius: 20px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+.mainSearchInput:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.mainFilterControls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}

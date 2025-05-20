@@ -1,0 +1,128 @@
+/* src/components/Employees/SalaryHistoryModal.module.css */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1080; /* Dưới ConfirmModal */
+}
+.modal { /* ... copy, max-width có thể là 750px hoặc 800px ... */
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.closeButton {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+}
+.closeButton:hover{
+    color: #333;
+}
+.title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    color: #333;
+    text-align: left;
+}
+.employeeInfo {
+    margin-bottom: 20px;
+    font-size: 1rem;
+    color: #333;
+}
+.employeeInfo strong {
+    color: #007bff;
+}
+
+.historyTableContainer {
+    margin-top: 15px;
+    max-height: 400px; /* Giới hạn chiều cao bảng */
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+.historyTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.historyTable th, .historyTable td {
+    border: 1px solid #e9ecef;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+.historyTable th {
+    background-color: #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.historyTable .amountCell { text-align: right; font-weight: 500; white-space: nowrap; }
+.historyTable .dateCell { white-space: nowrap; }
+.historyTable tbody tr:nth-child(even) { background-color: #fdfdfd; }
+.historyTable tbody tr:hover { background-color: #f1f9ff; }
+
+.noHistory {
+    text-align: center;
+    padding: 30px 0;
+    font-style: italic;
+    color: #6c757d;
+}
+.actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btnPrimary {
+    background-color: #007bff;
+    color: white;
+}
+.btnPrimary:hover {
+    background-color: #0056b3;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+.btnSecondary {
+    background-color: #6c757d;
+    color: white;
+}
+.btnSecondary:hover {
+    background-color: #545b62;
+}

@@ -1,0 +1,130 @@
+/* src/components/Attributes/AttributeTable.module.css */
+.tableContainer {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.attributeTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.attributeTable th, .attributeTable td {
+    border: 1px solid #e0e0e0;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.attributeTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+}
+
+.attributeTable tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.attributeTable tbody tr:hover .clickableCell { /* Chỉ highlight các ô click được */
+    background-color: #e9ecef;
+}
+
+.clickableCell {
+    cursor: pointer;
+    color: #007bff; /* Màu cho biết có thể click */
+}
+.clickableCell:hover {
+    text-decoration: underline;
+}
+
+
+.actionsCell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.btnAction {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 5px 8px;
+    margin: 0 3px;
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.btnEdit {
+    color: #ffc107;
+}
+.btnEdit:hover {
+    color: #fff;
+    background-color: #e0a800;
+}
+
+.btnDelete {
+    color: #dc3545;
+}
+.btnDelete:hover {
+    color: #fff;
+    background-color: #c82333;
+}
+
+.noResults {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Responsive cho bảng (ví dụ đơn giản) */
+@media (max-width: 768px) {
+    .attributeTable thead {
+        display: none; /* Ẩn header trên mobile */
+    }
+    .attributeTable tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .attributeTable td {
+        display: block;
+        text-align: right; /* Căn phải giá trị */
+        padding-left: 50%; /* Tạo không gian cho label */
+        position: relative;
+        border: none; /* Bỏ border td mặc định */
+        border-bottom: 1px solid #eee; /* Thêm border dưới */
+    }
+    .attributeTable td:last-child {
+        border-bottom: none;
+    }
+    .attributeTable td::before {
+        content: attr(data-label); /* Lấy nội dung từ data-label */
+        position: absolute;
+        left: 10px;
+        width: calc(50% - 20px); /* Chiều rộng label */
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #555;
+    }
+}
+
+/* ... (các style đã có) ... */
+.smallText {
+    font-size: 0.75em;
+    color: #6c757d;
+    font-weight: normal;
+    display: block; /* Cho xuống dòng nếu cần */
+}
+
+.attributeTable th, .attributeTable td {
+    /* ... */
+    vertical-align: top; /* Căn text lên trên nếu có .smallText */
+}

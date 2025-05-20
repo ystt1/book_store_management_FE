@@ -1,0 +1,148 @@
+/* src/components/Orders/OrderTable.module.css */
+.tableContainer {
+    overflow-x: auto;
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+
+.orderTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.orderTable th, .orderTable td {
+    border-bottom: 1px solid #e0e0e0; /* Chỉ border dưới cho gọn */
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+.orderTable tr td:first-child, .orderTable tr th:first-child { padding-left: 15px; }
+.orderTable tr td:last-child, .orderTable tr th:last-child { padding-right: 15px; }
+
+
+.orderTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap; /* Ngăn header xuống dòng */
+    border-top: none; /* Bỏ border top cho header */
+}
+.orderTable tbody tr:last-child td {
+    border-bottom: none; /* Bỏ border dưới cho hàng cuối cùng */
+}
+
+
+.orderTable tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.orderTable tbody tr:hover {
+    background-color: #f1f9ff; /* Màu hover nhẹ nhàng hơn */
+}
+
+.orderIdCell {
+    font-weight: 500;
+    color: #007bff;
+    cursor: pointer;
+}
+.orderIdCell:hover {
+    text-decoration: underline;
+}
+
+.timePart {
+    font-size: 0.8em;
+    color: #6c757d;
+    display: block;
+}
+
+.amountCell {
+    font-weight: 500;
+    text-align: right;
+    white-space: nowrap;
+    color: #28a745;
+}
+
+.statusCell {
+    min-width: 150px; /* Cho Select có không gian */
+}
+
+.statusBadge {
+    padding: 4px 8px;
+    border-radius: 12px; /* Bo tròn hơn */
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: white;
+    white-space: nowrap;
+}
+
+.statusPending { background-color: #ffc107; color: #212529;} /* Vàng */
+.statusProcessing { background-color: #17a2b8; } /* Xanh dương nhạt */
+.statusShipped { background-color: #fd7e14; } /* Cam */
+.statusCompleted { background-color: #28a745; } /* Xanh lá */
+.statusCancelled { background-color: #6c757d; } /* Xám */
+.statusRefunded { background-color: #dc3545; } /* Đỏ */
+
+
+/* Style cho react-select trong bảng */
+.statusSelect.react-select-container-table .react-select-table__control {
+    border: 1px solid #ced4da !important;
+    box-shadow: none !important;
+}
+.statusSelect.react-select-container-table .react-select-table__control--is-focused {
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25) !important;
+}
+.statusSelect.react-select-container-table .react-select-table__menu { /* Đảm bảo menu hiện trên */
+    z-index: 10;
+}
+
+
+.actionsCell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.btnAction {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem; /* Giảm nhẹ icon */
+    padding: 6px; /* Đồng đều padding */
+    margin: 0 2px;
+    border-radius: 4px;
+    color: #555; /* Màu icon mặc định */
+    transition: color 0.2s, background-color 0.2s;
+}
+.btnAction:hover {
+    background-color: #e9ecef;
+}
+
+.btnView { color: #007bff; }
+.btnView:hover { color: #0056b3; background-color: #cfe2ff;}
+
+.btnEdit { color: #ffc107; }
+.btnEdit:hover { color: #c79100; background-color: #fff3cd;}
+
+.btnDelete { color: #dc3545; }
+.btnDelete:hover { color: #b02a37; background-color: #f8d7da;}
+
+
+.noResults {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Responsive data-label cho bảng Order */
+@media (max-width: 992px) {
+    .orderTable thead { display: none; }
+    .orderTable tr { display: block; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .orderTable td { display: block; text-align: right; padding-left: 40%; position: relative; border: none; border-bottom: 1px solid #eee; }
+    .orderTable td:last-child { border-bottom: none; }
+    .orderTable td::before { content: attr(data-label); position: absolute; left: 10px; width: calc(40% - 15px); padding-right: 10px; white-space: nowrap; text-align: left; font-weight: bold; color: #555; }
+    .orderTable .statusCell, .orderTable .actionsCell { text-align: right; } /* Đảm bảo căn phải cho select và nút */
+    .orderTable .statusCell .react-select-container-table { margin-left: auto; max-width: 180px; } /* Điều chỉnh select trên mobile */
+}

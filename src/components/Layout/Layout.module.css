@@ -1,0 +1,24 @@
+/* src/components/Layout/Layout.module.css */
+.appContainer {
+    display: flex; /* Sidebar và mainContent sẽ nằm cạnh nhau */
+    height: 100vh;
+    overflow: hidden;
+}
+
+.mainContent {
+    flex-grow: 1;
+    padding: 25px;
+    background-color: #ecf0f1;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease-in-out;
+    margin-left: 260px; /* Chiều rộng mặc định của sidebar mở */
+}
+
+.mainContent.mainContentFull { /* Khi sidebar thu gọn */
+    margin-left: 70px; /* Chiều rộng của sidebar thu gọn */
+}
+
+/* Nếu bạn muốn hiệu ứng mượt hơn cho mainContent khi sidebar cố định hoàn toàn và không ảnh hưởng đến flow */
+/* .mainContentShifted {
+    margin-left: 260px;
+} */

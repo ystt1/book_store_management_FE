@@ -1,0 +1,224 @@
+/* src/components/Orders/OrderFormModal.module.css */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Dưới ConfirmModal */
+}
+
+.modal { /* ... copy, max-width: 800px hoặc 900px ... */
+    background-color: white;
+    padding: 20px; /* Giảm padding một chút */
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex; /* Cho phép form chiếm toàn bộ chiều cao */
+    flex-direction: column;
+}
+.title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    color: #333;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.orderForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Khoảng cách giữa các section */
+    flex-grow: 1; /* Cho phép form mở rộng */
+}
+
+.formSection {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e9e9e9;
+}
+.formSection h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: #007bff;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 8px;
+}
+
+.customerSelect, .productSelect { /* Style cho react-select */
+    /* Styles chung cho react-select container có thể đặt ở App.css hoặc common css */
+}
+.customerSelect .react-select__control,
+.productSelect .react-select__control {
+    border-radius: 4px !important;
+    border-color: #ced4da !important;
+}
+/* ... các style khác cho react-select nếu cần ... */
+
+
+.orderItemsTableContainer {
+    max-height: 250px; /* Giới hạn chiều cao bảng item, cho phép cuộn */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+
+.orderItemsTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.orderItemsTable th, .orderItemsTable td {
+    border: 1px solid #e0e0e0;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: middle;
+}
+.orderItemsTable th {
+    background-color: #f0f0f0;
+    font-weight: 600;
+    position: sticky; /* Giữ header khi cuộn */
+    top: 0;
+    z-index: 1;
+}
+.priceCell { text-align: right; white-space: nowrap; }
+.quantityHeader { text-align: center; width: 130px; } /* Cố định chiều rộng cột SL */
+.quantityCell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.quantityInput {
+    width: 50px;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    -moz-appearance: textfield; /* Ẩn mũi tên của input number */
+}
+.quantityInput::-webkit-outer-spin-button,
+.quantityInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.quantityBtn {
+    background: none;
+    border: 1px solid #ccc;
+    color: #333;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.quantityBtn:hover { background-color: #e9e9e9; }
+.quantityBtn:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.removeItemBtn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 5px;
+}
+.removeItemBtn:hover { color: #c82333; }
+
+
+.summarySection {
+    margin-top: auto; /* Đẩy summary xuống cuối nếu form có không gian thừa */
+    background-color: #eef2f7; /* Màu nền khác cho summary */
+}
+.summaryRow, .summaryRowInput {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 0.95rem;
+}
+.summaryRowInput label {
+    margin-right: 10px;
+    color: #555;
+}
+.summaryInput {
+    width: 70px;
+    text-align: right;
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-left: auto; /* Đẩy input sang phải */
+    margin-right: 5px;
+}
+.summaryRow span:first-child {
+    color: #444;
+    font-weight: 500;
+}
+.summaryRow span:last-child {
+    font-weight: bold;
+    color: #28a745; /* Màu cho số tiền */
+}
+.summaryRowInput span { /* Cho phần hiển thị số tiền giảm/thuế */
+    min-width: 100px; /* Đảm bảo đủ không gian */
+    text-align: right;
+    color: #555;
+}
+
+.summaryDivider {
+    border: none;
+    border-top: 1px dashed #ccc;
+    margin: 10px 0;
+}
+.totalRow span:last-child {
+    font-size: 1.2rem;
+    color: #dc3545; /* Màu cho tổng cuối cùng */
+}
+
+
+.actions { /* ... copy từ các modal khác ... */
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    background-color: #fff; /* Đảm bảo nền trắng cho actions */
+    width: 100%; /* Chiếm toàn bộ chiều rộng của modal content */
+    box-sizing: border-box;
+    /* position: sticky;  Nếu muốn actions dính ở dưới khi cuộn modal
+    bottom: 0;
+    left: 0;
+    padding: 15px 30px; */
+}
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.btnSubmit {
+    background-color: #007bff;
+    color: white;
+}
+.btnSubmit:hover {
+    background-color: #0056b3;
+}
+
+.btnCancel {
+    background-color: #6c757d;
+    color: white;
+}
+.btnCancel:hover {
+    background-color: #5a6268;
+}

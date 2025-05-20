@@ -1,0 +1,175 @@
+/* src/components/ImportOrders/ImportOrderDetailsModal.module.css */
+.overlay { /* ... copy style overlay ... */
+    z-index: 1070;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.modal { /* ... copy style modal, có thể max-width: 850px ... */
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 850px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+.closeButton {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+}
+.closeButton:hover{
+    color: #333;
+}
+.title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    color: #333;
+    text-align: left;
+}
+.detailsGridContainer {
+    display: grid;
+    grid-template-columns: 1fr; /* Mặc định 1 cột */
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 768px) { /* 2 cột trên màn hình lớn hơn */
+    .detailsGridContainer {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.detailSection {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+.detailSection h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #007bff;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #ddd;
+}
+.detailItem {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+.detailItem:last-child {
+    border-bottom: none;
+}
+.detailItem strong {
+    color: #555;
+    margin-right: 8px;
+}
+.detailItem span {
+    color: #333;
+    text-align: right;
+}
+.statusValue { /* Style riêng cho trạng thái */
+    font-weight: bold;
+    padding: 3px 7px;
+    border-radius: 10px;
+    color: white !important; /* Ghi đè màu của span cha */
+    font-size: 0.85rem !important;
+}
+/* ... (các class màu status: .statusPending, .statusApproved, ...) ... */
+.statusPending { background-color: #ffc107; color: #212529 !important;}
+.statusApproved { background-color: #20c997 !important; }
+.statusImporting { background-color: #17a2b8 !important; }
+.statusCompleted { background-color: #28a745 !important; }
+.statusCancelled { background-color: #6c757d !important; }
+
+
+.itemsTableContainer {
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+.itemsTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.itemsTable th, .itemsTable td {
+    border: 1px solid #e0e0e0;
+    padding: 8px 10px;
+    text-align: left;
+}
+.itemsTable th {
+    background-color: #f0f0f0;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.itemsTable .numberCell { text-align: right; }
+.itemsTable .productTypeCell { text-transform: capitalize; }
+
+
+.notesSection {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+.notesSection strong { display: block; margin-bottom: 5px; color: #555;}
+.notesSection p { margin: 0; white-space: pre-wrap; color: #333;}
+
+
+.actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.btnSubmit {
+    background-color: #007bff;
+    color: white;
+}
+.btnSubmit:hover {
+    background-color: #0056b3;
+}
+
+.btnCancel {
+    background-color: #6c757d;
+    color: white;
+}
+.btnCancel:hover {
+    background-color: #5a6268;
+}

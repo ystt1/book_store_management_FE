@@ -1,0 +1,132 @@
+/* src/pages/AttributeManagementPage.module.css */
+.pageContainer {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Giảm margin */
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.pageHeader h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.btn { /* Nút chung */
+    padding: 10px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.btnPrimary {
+    background-color: #007bff;
+    color: white;
+}
+.btnPrimary:hover {
+    background-color: #0056b3;
+}
+
+.tabContainer {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.tabButton {
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    font-size: 1rem;
+    color: #495057;
+    margin-right: 5px; /* Khoảng cách giữa các tab */
+    border-bottom: 2px solid transparent; /* Đường gạch dưới mặc định */
+    transition: color 0.2s, border-bottom-color 0.2s;
+}
+
+.tabButton.active {
+    color: #007bff;
+    font-weight: 600;
+    border-bottom-color: #007bff; /* Đường gạch dưới cho tab active */
+}
+
+.tabButton:hover:not(.active) {
+    color: #0056b3;
+}
+
+.tabContent {
+    /* Style cho nội dung của tab nếu cần */
+}
+
+.contentHeader { /* Header cho mỗi tab (ví dụ: tên tab và nút thêm) */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.contentHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #495057;
+}
+
+/* ... (các style đã có) ... */
+
+.contentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Tăng margin */
+}
+.contentHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #495057;
+}
+
+.headerActions { /* Wrapper cho tìm kiếm và nút thêm */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.searchWrapper {
+    position: relative;
+    /* flex-grow: 1; Có thể không cần nếu muốn nút Thêm ở sát bên */
+}
+
+.searchIcon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.searchInput {
+    padding: 9px 12px 9px 30px; /* Điều chỉnh padding */
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    min-width: 250px; /* Độ rộng tối thiểu cho ô tìm kiếm */
+}
+.searchInput:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
