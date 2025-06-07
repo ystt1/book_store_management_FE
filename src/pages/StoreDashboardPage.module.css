@@ -1,0 +1,74 @@
+.dashboard {
+    padding: 24px;
+}
+
+.spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.statsRow {
+    margin-bottom: 24px;
+}
+
+.chartRow {
+    margin-bottom: 24px;
+}
+
+.tableRow {
+    margin-bottom: 24px;
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+    .dashboard {
+        padding: 12px;
+    }
+
+    .statsRow > div {
+        margin-bottom: 12px;
+    }
+
+    .chartRow > div {
+        margin-bottom: 12px;
+    }
+}
+
+/* Card hover effects */
+:global(.ant-card) {
+    transition: all 0.3s ease;
+}
+
+:global(.ant-card:hover) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Statistics styling */
+:global(.ant-statistic-title) {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+}
+
+:global(.ant-statistic-content) {
+    color: #1890ff;
+    font-size: 24px;
+}
+
+/* Chart container */
+:global(.ant-card-head-title) {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Table styling */
+:global(.ant-table-thead > tr > th) {
+    background: #fafafa;
+    font-weight: 500;
+}
+
+:global(.ant-table-tbody > tr:hover > td) {
+    background: #e6f7ff;
+} 

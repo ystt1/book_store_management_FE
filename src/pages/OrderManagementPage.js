@@ -1,277 +1,772 @@
 // src/pages/OrderManagementPage.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react';
+import { useSearchParams, useNavigate, useParams, useLocation } from 'react-router-dom';
 import styles from './OrderManagementPage.module.css';
 import OrderTable from '../components/Orders/OrderTable';
 import OrderFormModal from '../components/Orders/OrderFormModal';
 import OrderDetailsModal from '../components/Orders/OrderDetailsModal';
 import ConfirmModal from '../components/Common/ConfirmModal';
-import Pagination from '../components/Common/Pagination';
-import Select from 'react-select'; // Cho filter trạng thái
+import Select from 'react-select';
+import orderService from '../services/orderService';
+import customerService from '../services/customerService';
 import { FaPlus, FaSearch, FaFilter, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
+import { Table, Button, Space, Modal, Form, Input, message, DatePicker, Tag, Row, Col, InputNumber, Card, Statistic, Divider } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ContainerOutlined, DollarOutlined, SyncOutlined } from '@ant-design/icons';
+import { debounce } from 'lodash';
 
-// Dữ liệu mẫu
-const sampleOrders = [
-    { id: 'ORD001', customer_id: 'CUS001', customer_name: 'Nguyễn Văn An', order_date: '2023-10-28T10:30:00Z', total_amount: 220000, status: 'pending', created_by: 'admin', items: [{product_id: 'B001', product_type: 'book', name: 'Sách ReactJS', quantity: 1, unit_price: 220000}], discount: 0, tax_rate: 10 },
-    { id: 'ORD002', customer_id: 'CUS002', customer_name: 'Trần Thị Bình', order_date: '2023-10-27T14:00:00Z', total_amount: 150000, status: 'processing', created_by: 'staff01', items: [{product_id: 'S001', product_type: 'stationery', name: 'Bút bi', quantity: 30, unit_price: 5000}], discount: 5, tax_rate: 10 },
-    { id: 'ORD003', customer_id: 'CUS001', customer_name: 'Nguyễn Văn An', order_date: '2023-10-26T09:15:00Z', total_amount: 575000, status: 'completed', created_by: 'admin', items: [{product_id: 'B002',product_type: 'book', name: 'Sách Node.js', quantity: 2, unit_price: 150000}, {product_id: 'S002', product_type: 'stationery', name: 'Vở Campus', quantity: 5, unit_price: 55000}], discount: 0, tax_rate: 0},
-];
-const orderStatusOptions = [
-    { value: 'pending', label: 'Chờ xử lý' },
-    { value: 'processing', label: 'Đang xử lý' },
-    { value: 'shipped', label: 'Đang giao' },
-    { value: 'completed', label: 'Hoàn thành' },
-    { value: 'cancelled', label: 'Đã hủy' },
+const { Option } = Select;
+
+const paymentStatusOptions = [
+    { value: 'pending', label: 'Chờ thanh toán' },
+    { value: 'paid', label: 'Đã thanh toán' },
+    { value: 'failed', label: 'Thất bại' },
     { value: 'refunded', label: 'Đã hoàn tiền' },
 ];
 
+// Định nghĩa các trạng thái đơn hàng và luồng chuyển đổi
+const ORDER_STATUS = {
+    PROCESSING: 'processing',
+    COMPLETED: 'completed',
+    CANCELLED: 'cancelled'
+};
+
+const ORDER_STATUS_FLOW = {
+    [ORDER_STATUS.PROCESSING]: [ORDER_STATUS.COMPLETED, ORDER_STATUS.CANCELLED],
+    [ORDER_STATUS.COMPLETED]: [],
+    [ORDER_STATUS.CANCELLED]: []
+};
+
+const ORDER_STATUS_LABELS = {
+    [ORDER_STATUS.PROCESSING]: 'Đang xử lý',
+    [ORDER_STATUS.COMPLETED]: 'Hoàn thành',
+    [ORDER_STATUS.CANCELLED]: 'Đã hủy'
+};
+
+const ORDER_STATUS_COLORS = {
+    [ORDER_STATUS.PROCESSING]: '#1890ff',   // Màu xanh dương
+    [ORDER_STATUS.COMPLETED]: '#52c41a',    // Màu xanh lá
+    [ORDER_STATUS.CANCELLED]: '#ff4d4f'     // Màu đỏ
+};
+
+// initialOrderForm cho OrderFormModal
+const initialOrderFormData = {
+    customer_id: null,
+    customer_name_cache: '', // Cho khách lẻ
+    items: [],
+    discount_type: null,
+    discount_value: 0,
+    tax_percentage: 10, // Mặc định thuế (nếu có)
+    shipping_address: '',
+    notes_customer: '',
+    notes_internal: '',
+    payment_method: null, // Sẽ được chọn khi thanh toán
+};
 
 const OrderManagementPage = () => {
-    const [orders, setOrders] = useState(sampleOrders);
-    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-    const [formModalMode, setFormModalMode] = useState('add'); // 'add' or 'edit'
-    const [currentOrder, setCurrentOrder] = useState(null); // Đơn hàng đang được sửa hoặc xem
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const { storeId } = useParams(); // Get storeId from URL params
+    const { currentUser } = useAuth();
+    const location = useLocation();
 
-    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    // Determine if we're in admin mode (no storeId) or store-specific mode
+    const isAdminView = !storeId;
 
-    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [orderIdToDelete, setOrderIdToDelete] = useState(null);
-
-    // Filter & Search
-    const [searchTerm, setSearchTerm] = useState(''); // Theo mã ĐH, tên KH
-    const [filterStatus, setFilterStatus] = useState(null); // Select dropdown
-    const [filterDateFrom, setFilterDateFrom] = useState('');
-    const [filterDateTo, setFilterDateTo] = useState('');
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-    const [filterMinAmount, setFilterMinAmount] = useState(''); // <<< THÊM CHO KHOẢNG GIÁ
-    const [filterMaxAmount, setFilterMaxAmount] = useState(''); // <<< THÊM CHO KHOẢNG GIÁ
+    const [orders, setOrders] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+    const [pageSize, setPageSize] = useState(parseInt(searchParams.get('limit')) || 10);
+    const [total, setTotal] = useState(0);
 
-    const filteredOrders = useMemo(() => {
-        return orders.filter(order => {
-            const searchMatch = searchTerm === '' ||
-                order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filter
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [filterDateRange, setFilterDateRange] = useState([null, null]);
+    const [filterMinAmount, setFilterMinAmount] = useState('');
+    const [filterMaxAmount, setFilterMaxAmount] = useState('');
+    const [isFilterVisible, setIsFilterVisible] = useState(false);
 
-            const statusMatch = !filterStatus || order.status === filterStatus.value;
+    // Thêm state để lưu giá trị tạm thời
+    const [tempSearchTerm, setTempSearchTerm] = useState('');
+    const [tempMinAmount, setTempMinAmount] = useState('');
+    const [tempMaxAmount, setTempMaxAmount] = useState('');
 
-            const dateFromMatch = filterDateFrom === '' || new Date(order.order_date) >= new Date(filterDateFrom);
-            const dateToMatch = filterDateTo === '' || new Date(order.order_date) <= new Date(new Date(filterDateTo).setHours(23,59,59,999)); // Đến cuối ngày
+    // Data cho dropdowns trong Form và Filter
+    const [productOptions, setProductOptions] = useState([]); // Sách và VPP gộp lại
 
-            return searchMatch && statusMatch && dateFromMatch && dateToMatch;
+    // Modals
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [currentOrderDataForForm, setCurrentOrderDataForForm] = useState(initialOrderFormData);
+    const [formModalMode, setFormModalMode] = useState('add');
+
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [selectedOrderForDetails, setSelectedOrderForDetails] = useState(null);
+
+    // const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    // const [orderToPay, setOrderToPay] = useState(null);
+
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [itemToConfirm, setItemToConfirm] = useState({ id: null, name: '', action: '' });
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [form] = Form.useForm();
+    const [editingId, setEditingId] = useState(null);
+    const [customerOptions, setCustomerOptions] = useState([]);
+    const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+
+    // Debounced search function
+    const debouncedSearchCustomers = useMemo(
+        () =>
+            debounce(async (searchText) => {
+                if (!searchText) {
+                    return;
+                }
+                setIsLoadingCustomers(true);
+                try {
+                    const response = await customerService.searchCustomers(searchText);
+                    const formattedOptions = response.customers.map(customer => ({
+                        value: customer._id,
+                        label: `${customer.full_name} (${customer.phone})`,
+                        customer: customer
+                    }));
+                    setCustomerOptions(formattedOptions);
+                } catch (error) {
+                    console.error('Error searching customers:', error);
+                    message.error('Không thể tìm kiếm khách hàng');
+                } finally {
+                    setIsLoadingCustomers(false);
+                }
+            }, 500),
+        []
+    );
+
+    // Initial customers load
+    const loadInitialCustomers = async () => {
+        setIsLoadingCustomers(true);
+        try {
+            const response = await customerService.getAllCustomers();
+            const formattedOptions = response.customers.map(customer => ({
+                value: customer._id,
+                label: `${customer.full_name} (${customer.phone})`,
+                customer: customer
+            }));
+            setCustomerOptions(formattedOptions);
+        } catch (error) {
+            console.error('Error loading initial customers:', error);
+            message.error('Không thể tải danh sách khách hàng');
+        } finally {
+            setIsLoadingCustomers(false);
+        }
+    };
+
+    useEffect(() => {
+        loadInitialCustomers();
+    }, []);
+
+    // Handle customer search
+    const handleCustomerSearch = (value) => {
+        if (value) {
+            debouncedSearchCustomers(value);
+        } else {
+            loadInitialCustomers();
+        }
+    };
+
+    // Clean up debounce on unmount
+    useEffect(() => {
+        return () => {
+            debouncedSearchCustomers.cancel();
+        };
+    }, [debouncedSearchCustomers]);
+
+   
+    const fetchOrders = useCallback(async (pageToFetch, currentFilters) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const params = {
+                page: pageToFetch,
+                limit: pageSize,
+                ...(currentFilters.searchTerm && { searchTerm: currentFilters.searchTerm }),
+                ...(currentFilters.filterStatus && { status: currentFilters.filterStatus }),
+                ...(currentFilters.filterDateRange?.[0] && { dateFrom: currentFilters.filterDateRange[0] }),
+                ...(currentFilters.filterDateRange?.[1] && { dateTo: currentFilters.filterDateRange[1] }),
+                ...(currentFilters.filterMinAmount && { minAmount: currentFilters.filterMinAmount }),
+                ...(currentFilters.filterMaxAmount && { maxAmount: currentFilters.filterMaxAmount })
+            };
+
+            const response = await orderService.getAllOrders(storeId, params);
+            console.log('Orders response:', response); // Debug log
+
+            if (response.orders) {
+                setOrders(response.orders);
+                setTotal(response.pagination?.total || 0);
+                setCurrentPage(response.pagination?.currentPage || pageToFetch);
+            }
+
+            // Cập nhật URL params
+            const newSearchParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== '') newSearchParams.set(key, value);
+            });
+            setSearchParams(newSearchParams, { replace: true });
+        } catch (err) {
+            console.error("Lỗi khi lấy danh sách đơn hàng:", err);
+            setError(err.message || 'Không thể tải danh sách đơn hàng.');
+            setOrders([]);
+            setTotal(0);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [pageSize, setSearchParams, storeId]);
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                if (!storeId) {
+                    throw new Error('Store ID is required');
+                }
+
+                const response = await orderService.getProductsForForm(storeId);
+                const customerResponse = await customerService.getAllCustomers();
+                if (response?.success && response?.data) {
+                    setProductOptions(response.data.allProducts);
+                }
+                if (customerResponse?.success && customerResponse?.data) {
+                    setCustomerOptions(customerResponse.data.customers);
+                }
+            } catch (err) {
+                console.error("Lỗi tải dữ liệu form:", err);
+                setError("Lỗi tải dữ liệu cho form.");
+            }
+        };
+        fetchInitialData();
+    }, [storeId]);
+
+    // Cập nhật useEffect để đọc params từ URL và fetch data
+    useEffect(() => {
+        const pageFromUrl = parseInt(searchParams.get('page')) || 1;
+        const searchTermFromUrl = searchParams.get('searchTerm') || '';
+        const statusFromUrl = searchParams.get('status') || '';
+        const dateFromUrl = searchParams.get('dateFrom');
+        const dateToUrl = searchParams.get('dateTo');
+        const minAmountFromUrl = searchParams.get('minAmount');
+        const maxAmountFromUrl = searchParams.get('maxAmount');
+
+        // Cập nhật state từ URL
+        setSearchTerm(searchTermFromUrl);
+        setFilterStatus(statusFromUrl);
+        setFilterMinAmount(minAmountFromUrl || '');
+        setFilterMaxAmount(maxAmountFromUrl || '');
+        if (dateFromUrl && dateToUrl) {
+            setFilterDateRange([dateFromUrl, dateToUrl]);
+        }
+
+        // Fetch orders với các params từ URL
+        fetchOrders(pageFromUrl, {
+            searchTerm: searchTermFromUrl,
+            filterStatus: statusFromUrl,
+            filterDateRange: dateFromUrl && dateToUrl ? [dateFromUrl, dateToUrl] : null,
+            filterMinAmount: minAmountFromUrl,
+            filterMaxAmount: maxAmountFromUrl
         });
-    }, [orders, searchTerm, filterStatus, filterDateFrom, filterDateTo]);
+    }, [searchParams, fetchOrders]);
 
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentOrdersOnPage = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    const handleFilterChange = (filterName, value) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (value) {
+            newParams.set(filterName, value);
+        } else {
+            newParams.delete(filterName);
+        }
+        newParams.set('page', '1'); // Reset về trang 1 khi filter thay đổi
+        setSearchParams(newParams);
+    };
 
-    const handlePageChange = (page) => setCurrentPage(page);
+    const handlePageChange = (page, pageSize) => {
+        setCurrentPage(page);
+        setPageSize(pageSize);
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('page', page.toString());
+        newParams.set('limit', pageSize.toString());
+        setSearchParams(newParams);
 
-    const handleOpenFormModal = (mode, order = null) => {
+        // Fetch orders với trang mới
+        fetchOrders(page, {
+            searchTerm,
+            filterStatus,
+            filterDateRange,
+            filterMinAmount,
+            filterMaxAmount
+        });
+    };
+
+    const openFormModal = (mode, order = null) => {
         setFormModalMode(mode);
-        setCurrentOrder(order); // Sẽ truyền vào OrderFormModal
+        if (mode === 'edit' && order) {
+            const formData = {
+                ...initialOrderFormData,
+                ...order,
+                id: order._id || order.id,
+                customer_id: order.customer_id || null,  // Directly use the customer_id from order
+                items: order.items?.map(item => ({
+                    ...item,
+                    product: productOptions?.find(p => p.value === item.product_id) || null
+                })) || []
+            };
+            setCurrentOrderDataForForm(formData);
+        } else {
+            setCurrentOrderDataForForm(initialOrderFormData);
+        }
         setIsFormModalOpen(true);
     };
+    const closeFormModal = () => setIsFormModalOpen(false);
 
-    const handleCloseFormModal = () => {
-        setIsFormModalOpen(false);
-        setCurrentOrder(null);
-    };
+    const handleSubmitOrder = async (formData) => {
+       
+    
+        setIsLoading(true);
+        try {
+            if (!storeId) {
+                throw new Error('Store ID is required');
+            }
 
-    const handleSubmitOrder = (orderData) => {
-        // TODO: Gọi API để tạo/cập nhật đơn hàng
-        console.log("Submitting order:", orderData);
-        if (formModalMode === 'add') {
-            const newOrder = { ...orderData, id: `ORD${Date.now().toString().slice(-4)}`, customer_name: sampleOrders.find(c=>c.customer_id === orderData.customer_id)?.customer_name || 'Khách Lẻ', created_by: 'CurrentUser' }; // Cần lấy tên KH
-            setOrders(prev => [newOrder, ...prev]);
-            alert('Tạo đơn hàng thành công!');
-        } else {
-            setOrders(prev => prev.map(o => o.id === orderData.id ? { ...o, ...orderData, customer_name: sampleOrders.find(c=>c.customer_id === orderData.customer_id)?.customer_name || o.customer_name } : o));
-            alert('Cập nhật đơn hàng thành công!');
+            console.log('Form data received:', formData); // Debug log
+
+            // Gửi trực tiếp formData mà không format lại
+            const response = await orderService.createOrder(storeId, formData);
+            
+            if (response.success) {
+                message.success('Tạo đơn hàng thành công!');
+                closeFormModal();
+                fetchOrders(currentPage, {
+                    searchTerm,
+                    filterStatus,
+                    filterDateRange,
+                    filterMinAmount,
+                    filterMaxAmount
+                });
+            }
+        } catch (err) {
+            console.error('Error creating order:', err);
+            message.error(err.response?.data?.message || 'Lỗi khi tạo đơn hàng.');
+        } finally {
+            setIsLoading(false);
         }
-        handleCloseFormModal();
-        setCurrentPage(1); // Quay về trang 1
     };
 
-    const handleOpenDetailsModal = (order) => {
-        setCurrentOrder(order);
-        setIsDetailsModalOpen(true);
+    const openDetailsModal = async (order) => {
+        setIsLoading(true);
+        try {
+            const detailedOrder = await orderService.getOrderById(order._id || order.id);
+            // API nên trả về items với product_name đã được điền
+            setSelectedOrderForDetails(detailedOrder);
+            setIsDetailsModalOpen(true);
+        } catch (err) {
+            setError(err.message || "Không thể tải chi tiết đơn hàng.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleDeleteClick = (orderId) => {
-        setOrderIdToDelete(orderId);
+    // Thêm hàm kiểm tra trạng thái có thể chuyển đổi
+    const getAvailableStatusTransitions = (currentStatus) => {
+        return ORDER_STATUS_FLOW[currentStatus] || [];
+    };
+
+    // Cập nhật hàm xử lý thay đổi trạng thái
+    const handleUpdateStatus = async (orderId, newStatus) => {
+        try {
+            if (!storeId) {
+                throw new Error('Store ID is required');
+            }
+
+            setIsLoading(true);
+            const response = await orderService.updateOrderStatus(storeId, orderId, { status: newStatus });
+
+            if (response.success) {
+                // Fetch lại dữ liệu ngay sau khi update thành công
+                await fetchOrders(currentPage, {
+                    searchTerm,
+                    filterStatus,
+                    filterDateRange,
+                    filterMinAmount,
+                    filterMaxAmount
+                });
+                message.success('Cập nhật trạng thái đơn hàng thành công');
+            } else {
+                message.error(response.message || 'Lỗi khi cập nhật trạng thái đơn hàng');
+            }
+        } catch (err) {
+            console.error('Error updating order status:', err);
+            message.error(err.message || 'Lỗi khi cập nhật trạng thái đơn hàng');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // const handleProcessPaymentOnPage = async (paymentData) => {
+    //     // Được gọi từ PaymentModal (nếu dùng)
+    //     setIsLoading(true);
+    //     try {
+    //         await orderService.processOrderPayment(paymentData.orderId, paymentData);
+    //         alert("Thanh toán thành công!");
+    //         // setIsPaymentModalOpen(false);
+    //         // setOrderToPay(null);
+    //         fetchOrders(); // Fetch lại
+    //     } catch (err) { setError(err.message || 'Lỗi xử lý thanh toán.'); }
+    //     finally { setIsLoading(false); }
+    // };
+
+
+    const handleCancelOrderClick = (orderId) => {
+        setItemToConfirm({ id: orderId, name: `đơn hàng ${orderId}`, action: 'cancel' });
         setIsConfirmModalOpen(true);
     };
 
-    const handleConfirmDelete = () => {
-        // TODO: Gọi API để xóa đơn hàng (có thể chỉ là thay đổi trạng thái sang 'cancelled')
-        console.log("Deleting order ID:", orderIdToDelete);
-        setOrders(prev => prev.filter(o => o.id !== orderIdToDelete));
-        // Cập nhật lại pagination
-        const newTotalPages = Math.ceil((filteredOrders.length -1) / itemsPerPage);
-        if(currentPage > newTotalPages && newTotalPages > 0) setCurrentPage(newTotalPages);
-        else if(newTotalPages === 0) setCurrentPage(1);
+    const handleConfirmCancelOrder = async () => {
+        if (!itemToConfirm.id) return;
+        setIsLoading(true);
+        try {
+            if (!storeId) {
+                throw new Error('Store ID is required');
+            }
 
-        setIsConfirmModalOpen(false);
-        setOrderIdToDelete(null);
-        alert('Xóa đơn hàng thành công (hoặc đã hủy)!');
+            await orderService.cancelOrder(storeId, itemToConfirm.id, 'Hủy bởi người dùng');
+            alert('Hủy đơn hàng thành công!');
+            setIsConfirmModalOpen(false);
+            setItemToConfirm({ id: null, name: '', action: '' });
+            fetchOrders(currentPage, { searchTerm, filterStatus, filterDateRange, filterMinAmount, filterMaxAmount });
+        } catch (err) {
+            setError(err.message || 'Lỗi khi hủy đơn hàng.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleUpdateOrderStatus = (orderId, newStatus) => {
-        // TODO: Gọi API cập nhật trạng thái đơn hàng
-        console.log(`Updating status for order ${orderId} to ${newStatus}`);
-        setOrders(prevOrders =>
-            prevOrders.map(order =>
-                order.id === orderId ? { ...order, status: newStatus } : order
-            )
-        );
-        alert(`Đã cập nhật trạng thái đơn hàng ${orderId} thành ${orderStatusOptions.find(s=>s.value === newStatus)?.label}!`);
+    const handleEdit = (record) => {
+        setEditingId(record.orderId);
+        form.setFieldsValue(record);
+        setModalVisible(true);
     };
 
+    const handleDelete = async (id) => {
+        try {
+            // Gọi API xóa đơn hàng
+            message.success('Xóa đơn hàng thành công!');
+        } catch (error) {
+            message.error('Xóa đơn hàng thất bại!');
+        }
+    };
 
+    const handleModalOk = async () => {
+        try {
+            const values = await form.validateFields();
+            if (editingId) {
+                // Gọi API cập nhật đơn hàng
+                message.success('Cập nhật đơn hàng thành công!');
+            } else {
+                // Gọi API thêm đơn hàng mới
+                message.success('Thêm đơn hàng thành công!');
+            }
+            setModalVisible(false);
+            form.resetFields();
+            setEditingId(null);
+        } catch (error) {
+            console.error('Validate Failed:', error);
+        }
+    };
 
- const resetAdvancedFilters = () => { // <<< CẬP NHẬT
-        setFilterStatus(null);
-        setFilterDateFrom('');
-        setFilterDateTo('');
-        setFilterMinAmount('');
-        setFilterMaxAmount('');
+    const handleModalCancel = () => {
+        setModalVisible(false);
+        form.resetFields();
+        setEditingId(null);
+    };
+
+    // Hàm xử lý khi nhấn Enter
+    const handleSearchKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            setSearchTerm(tempSearchTerm);
+        }
+    };
+
+    // Hàm xử lý khi nhấn Enter cho bộ lọc giá
+    const handleAmountFilterKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            setFilterMinAmount(tempMinAmount);
+            setFilterMaxAmount(tempMaxAmount);
+        }
+    };
+
+    // Hàm reset bộ lọc
+    const handleResetFilters = () => {
+        setSearchParams(new URLSearchParams({ page: '1', limit: pageSize.toString() }));
+    };
+
+    // Cập nhật hàm tìm kiếm để hỗ trợ tìm theo ID
+    const handleSearch = (value) => {
+        setSearchTerm(value);
         setCurrentPage(1);
-        setShowAdvancedFilters(false); // Tùy chọn
+        const params = new URLSearchParams(searchParams);
+        params.set('searchTerm', value);
+        params.set('page', '1');
+        setSearchParams(params);
     };
 
+    // --- JSX ---
     return (
         <div className={styles.pageContainer}>
-            <div className={styles.pageHeader}>
-                <h1>Quản Lý Đơn Hàng</h1>
-                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => handleOpenFormModal('add')}>
-                    <FaPlus /> Tạo Đơn Hàng Mới
-                </button>
-            </div>
+            
 
-            <div className={styles.mainFilterControls}>
-                <div className={styles.searchWrapper}>
-                    <FaSearch className={styles.searchIcon} />
-                    <input
-                        type="text"
-                        placeholder="Tìm Mã ĐH, Tên Khách Hàng..."
-                        value={searchTerm}
-                        onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                        className={styles.mainSearchInput}
+            <Row gutter={[16, 16]} className={styles.statsSection}>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Tổng Đơn Hàng"
+                            value={total}
+                            prefix={<ContainerOutlined />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Tổng Doanh Thu"
+                            value={orders.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0)}
+                            prefix={<DollarOutlined />}
+                            formatter={(value) => `${value.toLocaleString('vi-VN')} VNĐ`}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Đơn Đang Xử Lý"
+                            value={orders.filter(order => order.status === ORDER_STATUS.PROCESSING).length}
+                            prefix={<SyncOutlined />}
+                            valueStyle={{ color: '#1890ff' }}
+                        />
+                    </Card>
+                </Col>
+            </Row>
+
+            <Divider />
+
+            <Card>
+                <div className={styles.tableHeader}>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Row gutter={[16, 16]} align="middle" justify="space-between">
+                            <Col xs={24} sm={16} md={12} lg={8}>
+                                <Input
+                                    placeholder="Tìm kiếm theo mã đơn hàng..."
+                                    prefix={<FaSearch />}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onSearch={handleSearch}
+                                    style={{ width: '100%' }}
+                                />
+                            </Col>
+                            <Col xs={24} sm={8} md={12} lg={16} style={{ textAlign: 'right' }}>
+                                <Space>
+                                    
+                                    <Button
+                                        icon={isFilterVisible ? <FaChevronUp /> : <FaChevronDown />}
+                                        onClick={() => setIsFilterVisible(!isFilterVisible)}
+                                    >
+                                        Bộ lọc nâng cao
+                                    </Button>
+                                    {!isAdminView && (
+                                        <Button
+                                            type="primary"
+                                            icon={<FaPlus />}
+                                            onClick={() => openFormModal('add')}
+                                        >
+                                            Tạo đơn hàng mới
+                                        </Button>
+                                    )}
+                                </Space>
+                            </Col>
+                        </Row>
+
+                        {isFilterVisible && (
+                            <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
+                                <Col xs={24} sm={12} md={8} lg={6}>
+                                    <Form.Item label="Trạng thái">
+                                        <Select
+                                            value={filterStatus}
+                                            onChange={(value) => setFilterStatus(value)}
+                                            allowClear
+                                            placeholder="Chọn trạng thái"
+                                            style={{ width: '100%' }}
+                                        >
+                                            {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
+                                                <Select.Option key={value} value={value}>
+                                                    {label}
+                                                </Select.Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+
+                                <Col xs={24} sm={12} md={8} lg={6}>
+                                    <Form.Item label="Khoảng thời gian">
+                                        <DatePicker.RangePicker
+                                            value={filterDateRange}
+                                            onChange={(dates) => setFilterDateRange(dates)}
+                                            format="DD/MM/YYYY"
+                                            style={{ width: '100%' }}
+                                        />
+                                    </Form.Item>
+                                </Col>
+
+                                <Col xs={24} sm={12} md={8} lg={6}>
+                                    <Form.Item label="Giá trị đơn hàng">
+                                        <Space style={{ width: '100%' }}>
+                                            <InputNumber
+                                                placeholder="Từ"
+                                                value={filterMinAmount}
+                                                onChange={(value) => setFilterMinAmount(value)}
+                                                style={{ width: '100%' }}
+                                            />
+                                            <InputNumber
+                                                placeholder="Đến"
+                                                value={filterMaxAmount}
+                                                onChange={(value) => setFilterMaxAmount(value)}
+                                                style={{ width: '100%' }}
+                                            />
+                                        </Space>
+                                    </Form.Item>
+                                </Col>
+                                <Col xs={24} sm={12} md={8} lg={6}>
+                                    <Form.Item label=" " className={styles.filterActions}>
+                                        <Button onClick={handleResetFilters}>
+                                            Đặt lại bộ lọc
+                                        </Button>
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                        )}
+                    </Space>
+                </div>
+
+                {isLoading && <div className={styles.loadingOverlay}><div className={styles.loader}></div></div>}
+                {error && <div className={styles.errorBanner}>{error}</div>}
+
+                {!isLoading && orders.length > 0 && !error && (
+                    <OrderTable
+                        orders={orders}
+                        onViewDetails={openDetailsModal}
+                        onEditOrder={!isAdminView ? openFormModal : undefined}
+                        onDeleteOrder={!isAdminView ? handleCancelOrderClick : undefined}
+                        onUpdateStatus={handleUpdateStatus}
+                        statusLabels={ORDER_STATUS_LABELS}
+                        statusColors={ORDER_STATUS_COLORS}
+                        orderStatusOptions={Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({
+                            value,
+                            label
+                        }))}
+                        isAdminView={isAdminView}
+                        loading={isLoading}
+                        pagination={{
+                            current: currentPage,
+                            pageSize: pageSize,
+                            total: total,
+                            onChange: handlePageChange,
+                            showSizeChanger: true,
+                            showTotal: (total) => `Tổng ${total} mục`
+                        }}
                     />
-                </div>
-                <button
-                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                    className={`${styles.btn} ${styles.btnToggleFilter}`}
-                    title={showAdvancedFilters ? "Ẩn bộ lọc nâng cao" : "Hiện bộ lọc nâng cao"}
-                >
-                    <FaFilter /> Lọc Nâng Cao {showAdvancedFilters ? <FaChevronUp /> : <FaChevronDown />}
-                </button>
-            </div>
-
-            {/* Bộ lọc chi tiết (ẩn/hiện) */}
-            {showAdvancedFilters && (
-                <div className={`${styles.advancedFilterBar} ${showAdvancedFilters ? styles.open : ''}`}>
-                    <h4 className={styles.advancedFilterTitle}>Tùy chọn lọc:</h4>
-                    <div className={styles.filterGrid}>
-                        <Select
-                            options={orderStatusOptions}
-                            value={filterStatus}
-                            onChange={val => { setFilterStatus(val); setCurrentPage(1); }}
-                            placeholder="Trạng thái đơn hàng"
-                            isClearable
-                            className={`${styles.filterControl} react-select-container`}
-                            classNamePrefix="react-select"
-                        />
-                        <input
-                            type="date"
-                            value={filterDateFrom}
-                            onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
-                            className={styles.filterControl}
-                            title="Từ ngày tạo"
-                        />
-                        <input
-                            type="date"
-                            value={filterDateTo}
-                            onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
-                            className={styles.filterControl}
-                            title="Đến ngày tạo"
-                        />
-                        <input
-                            type="number"
-                            placeholder="Tổng tiền từ (VNĐ)"
-                            value={filterMinAmount}
-                            onChange={e => { setFilterMinAmount(e.target.value); setCurrentPage(1); }}
-                            className={styles.filterControl}
-                            min="0"
-                        />
-                        <input
-                            type="number"
-                            placeholder="Tổng tiền đến (VNĐ)"
-                            value={filterMaxAmount}
-                            onChange={e => { setFilterMaxAmount(e.target.value); setCurrentPage(1); }}
-                            className={styles.filterControl}
-                            min="0"
-                        />
+                )}
+                {!isLoading && orders.length === 0 && !error && (
+                    <div className={styles.noResultsContainer}>
+                        <p className={styles.noResults}>Không có đơn hàng nào.</p>
                     </div>
-                    <div className={styles.filterActions}>
-                        <button onClick={resetAdvancedFilters} className={`${styles.btn} ${styles.btnSecondary}`}>
-                            Xóa bộ lọc
-                        </button>
-                    </div>
-                </div>
-            )}
-
-
-
-            <OrderTable
-                orders={currentOrdersOnPage}
-                onViewDetails={handleOpenDetailsModal}
-                onEditOrder={(order) => handleOpenFormModal('edit', order)} // Cho phép sửa đơn hàng (nếu cần)
-                onDeleteOrder={handleDeleteClick}
-                onUpdateStatus={handleUpdateOrderStatus} // Truyền hàm cập nhật trạng thái
-                orderStatusOptions={orderStatusOptions} // Truyền options để hiển thị dropdown
-            />
-
-            {totalPages > 0 && filteredOrders.length > itemsPerPage && (
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={filteredOrders.length}
-                />
-            )}
+                )}
+            </Card>
 
             <OrderFormModal
                 isOpen={isFormModalOpen}
-                onClose={handleCloseFormModal}
+                onClose={closeFormModal}
                 onSubmit={handleSubmitOrder}
-                currentOrder={currentOrder}
+                currentOrder={currentOrderDataForForm}
                 mode={formModalMode}
+                customerOptions={customerOptions}
+                onCustomerSearch={handleCustomerSearch}
+                isLoadingCustomers={isLoadingCustomers}
+                sampleProducts={productOptions}
             />
 
-            {currentOrder && isDetailsModalOpen && (
+            {selectedOrderForDetails && (
                 <OrderDetailsModal
                     isOpen={isDetailsModalOpen}
                     onClose={() => setIsDetailsModalOpen(false)}
-                    order={currentOrder} // Truyền đơn hàng đang được chọn
-                    orderStatusOptions={orderStatusOptions}
-                    onUpdateStatus={handleUpdateOrderStatus} // Cho phép cập nhật trạng thái từ chi tiết
+                    order={selectedOrderForDetails}
+                    statusLabels={ORDER_STATUS_LABELS}
+                    statusColors={ORDER_STATUS_COLORS}
+                    onUpdateStatus={handleUpdateStatus}
                 />
             )}
+
+            {/* PaymentModal nếu có */}
+            {/* {orderToPay && (
+                <PaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => setIsPaymentModalOpen(false)}
+                    order={orderToPay}
+                    onProcessPayment={handleProcessPaymentOnPage}
+                />
+            )} */}
+
 
             <ConfirmModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                onConfirm={handleConfirmDelete}
-                title="Xác nhận Hủy/Xóa Đơn Hàng"
-                message={`Bạn có chắc chắn muốn xóa/hủy đơn hàng "${orderIdToDelete}" không?`}
+                onConfirm={handleConfirmCancelOrder}
+                title="Xác nhận Hủy Đơn Hàng"
+                message={`Bạn có chắc chắn muốn hủy đơn hàng "${itemToConfirm.name}" không?`}
             />
+
+            <Modal
+                title={editingId ? 'Sửa Đơn Hàng' : 'Thêm Đơn Hàng'}
+                open={modalVisible}
+                onOk={handleModalOk}
+                onCancel={handleModalCancel}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                >
+                    <Form.Item
+                        name="customer"
+                        label="Khách hàng"
+                        rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="orderDate"
+                        label="Ngày đặt"
+                        rules={[{ required: true, message: 'Vui lòng chọn ngày đặt!' }]}
+                    >
+                        <Input type="date" />
+                    </Form.Item>
+                    <Form.Item
+                        name="status"
+                        label="Trạng thái"
+                        rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+                    >
+                        <Select>
+                            <Option value="processing">Đang xử lý</Option>
+                            <Option value="completed">Hoàn thành</Option>
+                            <Option value="cancelled">Đã hủy</Option>
+                        </Select>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

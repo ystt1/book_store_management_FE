@@ -113,4 +113,38 @@
     font-weight: bold;
 }
 
+/* src/pages/ReportsPage.module.css */
+/* ... các style đã có ... */
+
+.topNSelector, .lowStockSelector {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    color: #495057;
+}
+.topNSelector label, .lowStockSelector label {
+    font-weight: 500;
+}
+.topNSelector select, .lowStockSelector input {
+    padding: 4px 6px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.lowStockList { /* Style cho danh sách sản phẩm tồn kho thấp */
+    list-style-type: disc;
+    padding-left: 20px;
+    font-size: 0.9rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.lowStockList li {
+    margin-bottom: 5px;
+    color: #dc3545; /* Màu đỏ cho cảnh báo */
+}
+.lowStockList li strong {
+    color: #c82333;
+}
 /* Các style khác cho hiển thị báo cáo tồn kho, lương... */

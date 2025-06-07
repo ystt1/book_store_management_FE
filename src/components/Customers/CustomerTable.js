@@ -1,48 +1,117 @@
 // src/components/Customers/CustomerTable.js
 import React from 'react';
+import { Table, Space, Button, Tooltip } from 'antd';
+import { EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import styles from './CustomerTable.module.css';
 
-const CustomerTable = ({ customers, onEdit, onDelete, onViewHistory }) => {
+const CustomerTable = ({ customers, onEdit, onDelete, onViewHistory, pagination }) => {
+    const columns = [
+        {
+            title: 'ID Khách Hàng',
+            dataIndex: '_id',
+            key: '_id',
+            width: 120,
+        },
+        {
+            title: 'Họ và Tên',
+            dataIndex: 'full_name',
+            key: 'full_name',
+            render: (text, record) => (
+                <span 
+                    className={styles.customerName}
+                    onClick={() => onViewHistory(record)}
+                >
+                    {text}
+                </span>
+            ),
+        },
+        {
+            title: 'Số điện thoại',
+            dataIndex: 'phone',
+            key: 'phone',
+            width: 120,
+        },
+        {
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+            render: (text) => text || 'N/A',
+        },
+        {
+            title: 'Địa chỉ',
+            dataIndex: 'address',
+            key: 'address',
+            ellipsis: {
+                showTitle: false,
+            },
+            render: (address) => (
+                <Tooltip placement="topLeft" title={address || 'N/A'}>
+                    {address || 'N/A'}
+                </Tooltip>
+            ),
+        },
+        {
+            title: 'Tổng chi tiêu',
+            dataIndex: 'totalSpent',
+            key: 'totalSpent',
+            align: 'right',
+            sorter: true,
+            render: (value) => `${(value || 0).toLocaleString('vi-VN')} VNĐ`,
+        },
+        {
+            title: 'Số đơn hàng',
+            dataIndex: 'orderCount',
+            key: 'orderCount',
+            align: 'right',
+            sorter: true,
+            render: (value) => value || 0,
+        },
+        {
+            title: 'Hành động',
+            key: 'action',
+            width: 150,
+            fixed: 'right',
+            render: (_, record) => (
+                <Space size="small" className={styles.actionsCell}>
+                    <Tooltip title="Xem lịch sử">
+                        <Button
+                            type="text"
+                            icon={<EyeOutlined />}
+                            className={`${styles.btnAction} ${styles.btnView}`}
+                            onClick={() => onViewHistory(record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Chỉnh sửa">
+                        <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            className={`${styles.btnAction} ${styles.btnEdit}`}
+                            onClick={() => onEdit('edit', record)}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Xóa">
+                        <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            className={`${styles.btnAction} ${styles.btnDelete}`}
+                            onClick={() => onDelete(record._id)}
+                        />
+                    </Tooltip>
+                </Space>
+            ),
+        },
+    ];
+
     return (
         <div className={styles.tableContainer}>
-            <table className={styles.customerTable}>
-                <thead>
-                    <tr>
-                        <th>ID Khách Hàng</th>
-                        <th>Họ và Tên</th>
-                        <th>Số điện thoại</th>
-                        <th>Email</th>
-                        <th>Địa chỉ</th>
-                        <th>Tổng chi tiêu</th> {/* Cần dữ liệu tổng hợp */}
-                        <th>Số đơn hàng</th> {/* Cần dữ liệu tổng hợp */}
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {customers && customers.length > 0 ? (
-                        customers.map(customer => (
-                            <tr key={customer.id}>
-                                <td data-label="ID KH:">{customer.id}</td>
-                                <td data-label="Họ tên:" className={styles.customerName} onClick={() => onViewHistory(customer)}>{customer.full_name}</td>
-                                <td data-label="SĐT:">{customer.phone}</td>
-                                <td data-label="Email:">{customer.email || 'N/A'}</td>
-                                <td data-label="Địa chỉ:" className={styles.addressCell}>{customer.address || 'N/A'}</td>
-                                <td data-label="Tổng chi:" className={styles.numericCell}>{customer.totalSpent?.toLocaleString('vi-VN') || 0} VNĐ</td>
-                                <td data-label="Số đơn:" className={styles.numericCell}>{customer.orderCount || 0}</td>
-                                <td data-label="Hành động:" className={styles.actionsCell}>
-                                    <button onClick={() => onViewHistory(customer)} className={`${styles.btnAction} ${styles.btnView}`} title="Xem lịch sử">👁️</button>
-                                    <button onClick={() => onEdit(customer)} className={`${styles.btnAction} ${styles.btnEdit}`} title="Sửa">✏️</button>
-                                    <button onClick={() => onDelete(customer.id)} className={`${styles.btnAction} ${styles.btnDelete}`} title="Xóa">🗑️</button>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="8" className={styles.noResults}>Không có khách hàng nào.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            <Table
+                columns={columns}
+                dataSource={customers}
+                rowKey={(record) => record._id}
+                pagination={pagination}
+                scroll={{ x: 1200 }}
+            />
         </div>
     );
 };

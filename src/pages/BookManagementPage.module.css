@@ -1,264 +1,175 @@
 /* src/pages/BookManagementPage.module.css */
-.pageContainer {
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+.container {
+    padding: 24px;
 }
 
-.pageHeader {
+.header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 24px;
 }
 
-.pageHeader h1 {
+.title {
     margin: 0;
-    font-size: 1.8rem;
-    color: #333;
+    font-size: 24px;
+    font-weight: 600;
 }
 
-/* Styles cho nút chung trên trang */
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btnPrimary {
-    background-color: #007bff;
-    color: white;
-}
-.btnPrimary:hover {
-    background-color: #0056b3;
-    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
-}
-
-.btnSecondary {
-    background-color: #6c757d;
-    color: white;
-}
-.btnSecondary:hover {
-    background-color: #545b62;
-}
-
-/* Thanh Filter chính và nút Toggle Filter */
-.mainFilterControls {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.searchWrapper {
-    position: relative;
-    flex-grow: 1;
-}
-
-.searchIcon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #aaa;
-    font-size: 0.9rem;
-}
-
-.mainSearchInput {
-    width: 100%;
-    padding: 10px 15px 10px 35px;
-    border: 1px solid #ced4da;
-    border-radius: 20px;
-    font-size: 1rem;
-    box-sizing: border-box;
-}
-.mainSearchInput:focus {
-    outline: none;
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-.btnToggleFilter {
-    padding: 10px 15px;
-    background-color: #f8f9fa; /* Màu nền sáng hơn */
-    color: #495057; /* Màu text tối hơn */
-    border: 1px solid #ced4da; /* Thêm border */
-    border-radius: 5px; /* Bo tròn vừa phải */
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    transition: background-color 0.2s, border-color 0.2s;
-}
-.btnToggleFilter:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
-}
-.btnToggleFilter svg { /* Style cho icon chevron */
-    transition: transform 0.3s ease;
-}
-
-/* Khu vực filter chi tiết */
-.advancedFilterBar {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.07);
-    /* transition cho ẩn hiện nếu bạn muốn */
-}
-
-.filterGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-}
-
-.filterControl {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    box-sizing: border-box;
-}
-.filterControl:focus {
-    outline: none;
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-/* Style cho react-select trong filter bar */
-.advancedFilterBar .react-select-container .react-select__control {
-    min-height: auto !important;
-    height: calc(1.5em + 0.75rem + 2px + 16px); /* 2*8px padding */
-    padding-top: 0;
-    padding-bottom: 0;
-    border-radius: 5px !important;
-    border-color: #ced4da !important;
-}
-.advancedFilterBar .react-select-container .react-select__control--is-focused {
-    border-color: #80bdff !important;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25) !important;
-}
-.advancedFilterBar .react-select-container .react-select__placeholder {
-    color: #6c757d !important;
-}
-.advancedFilterBar .react-select-container .react-select__indicators {
-     height: calc(1.5em + 0.75rem + 16px - 2px); /* Trừ border */
-}
-
-
-.filterActions {
-    margin-top: 15px;
-    text-align: right;
-}
-
-/* Table Styles */
 .tableContainer {
-    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
 }
 
-.booksTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 0.9rem;
-}
-
-.booksTable th, .booksTable td {
-    border: 1px solid #e0e0e0;
-    padding: 10px 12px;
-    text-align: left;
-    vertical-align: middle;
-}
-
-.booksTable th {
-    background-color: #f8f9fa;
+.tableContainer :global(.ant-table-thead > tr > th) {
+    background: #fafafa !important;
     font-weight: 600;
     color: #495057;
-    white-space: nowrap; /* Ngăn header xuống dòng */
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    padding: 16px !important;
+    border-right: 1px solid #f0f0f0;
 }
 
-.booksTable tbody tr:nth-child(even) {
-    background-color: #fdfdfd;
+.tableContainer :global(.ant-table-tbody > tr > td) {
+    padding: 12px 16px !important;
+    border-right: 1px solid #f0f0f0;
 }
 
-.booksTable tbody tr.tableRowClickable:hover {
-    background-color: #e9ecef !important;
-    cursor: pointer;
+.tableContainer :global(.ant-table-tbody > tr:hover > td) {
+    background-color: #e9f5ff !important;
 }
 
-.bookImageTable {
-    width: 50px;
-    height: 75px;
+.imageContainer {
+    width: 45px;
+    height: 45px;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #eee;
+}
+
+.bookImage {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border-radius: 3px;
 }
 
 .bookTitle {
+    color: #1890ff;
+    cursor: pointer;
     font-weight: 500;
-    color: #007bff;
+}
+
+.bookTitle:hover {
+    text-decoration: underline;
+}
+
+.authorCell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.stockCell {
+    min-width: 45px;
+    text-align: center;
 }
 
 .priceCell {
     font-weight: 500;
-    color: #28a745;
-    white-space: nowrap;
+    color: #52c41a;
 }
 
 .actionsCell {
-    text-align: center;
-    white-space: nowrap;
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
 }
 
 .btnAction {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-    padding: 5px 8px;
-    margin: 0 3px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 4px;
-    transition: color 0.2s, background-color 0.2s;
 }
 
-.btnEdit {
-    color: #ffc107;
+.btnView:hover {
+    color: #1890ff;
+    background: #e6f7ff;
 }
+
 .btnEdit:hover {
-    color: #fff;
-    background-color: #e0a800;
+    color: #52c41a;
+    background: #f6ffed;
 }
 
-.btnDelete {
-    color: #dc3545;
-}
 .btnDelete:hover {
-    color: #fff;
-    background-color: #c82333;
+    color: #ff4d4f;
+    background: #fff1f0;
 }
 
-.noResultsContainer {
-    text-align: center;
-    padding: 40px 20px; /* Tăng padding */
-    border: 1px dashed #e0e0e0; /* Thêm border dashed */
-    border-radius: 5px;
-    margin-top: 20px;
-    background-color: #f9f9f9;
+.filterSection {
+    margin-bottom: 24px;
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-.noResults {
-    font-style: italic;
-    color: #6c757d;
-    font-size: 1rem; /* Tăng font size */
+
+.filterTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.filterForm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.filterFormItem {
+    flex: 1;
+    min-width: 200px;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .tableHeader {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .tableHeader :global(.ant-space) {
+        width: 100%;
+    }
+
+    .tableHeader :global(.ant-input) {
+        width: 100% !important;
+    }
+
+    .tableHeader :global(.ant-btn) {
+        width: 100%;
+    }
 }

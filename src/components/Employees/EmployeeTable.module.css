@@ -1,62 +1,75 @@
-/* src/components/Customers/employeeTable.module.css */
+/* src/components/Employees/EmployeeTable.module.css */
 .tableContainer {
     overflow-x: auto;
     margin-top: 20px;
+    width: 100%;
 }
-.employeeTable { width: 100%;
+
+.employeeTable {
+    width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem; }
-.employeeTable th, .employeeTable td {  border: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+    table-layout: fixed;
+}
+
+.employeeTable th,
+.employeeTable td {
+    border: 1px solid #e0e0e0;
     padding: 10px 12px;
     text-align: left;
-    vertical-align: middle; }
-.employeeTable th {  background-color: #f8f9fa;
+    vertical-align: middle;
+}
+
+.employeeTable th {
+    background-color: #f8f9fa;
     font-weight: 600;
     color: #495057;
-    white-space: nowrap;}
-.employeeTable tbody tr:nth-child(even) {  background-color: #fdfdfd; }
-.employeeTable tbody tr:hover { background-color: #f1f1f1; } /* Highlight cả dòng khi hover */
+    white-space: nowrap;
+}
 
-.customerName { /* Cho tên khách hàng */
+.employeeTable tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.employeeTable tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.employeeName {
     font-weight: 500;
     color: #007bff;
-    cursor: pointer;
-}
-.customerName:hover {
-    text-decoration: underline;
 }
 
-.addressCell {
-    max-width: 250px; /* Giới hạn chiều rộng cột địa chỉ */
+.actionsCell {
+    text-align: center;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.addressCell:hover { /* Hiển thị đầy đủ khi hover nếu muốn */
-    white-space: normal;
-    overflow: visible;
+    width: 150px;
 }
 
-.numericCell {
-    text-align: right;
-    white-space: nowrap;
-}
-
-.actionsCell { text-align: center;
-    white-space: nowrap; }
-.btnAction {  background: none;
+.btnAction {
+    background: none;
     border: none;
     cursor: pointer;
     font-size: 1.2rem;
     padding: 5px 8px;
     margin: 0 3px;
     border-radius: 4px;
-    transition: color 0.2s, background-color 0.2s; }
-.btnView { color: #17a2b8; } /* Màu cho nút xem */
-.btnView:hover { color: #fff; background-color: #138496; }
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.btnView {
+    color: #17a2b8;
+}
+
+.btnView:hover {
+    color: #fff;
+    background-color: #138496;
+}
+
 .btnEdit {
     color: #ffc107;
 }
+
 .btnEdit:hover {
     color: #fff;
     background-color: #e0a800;
@@ -65,32 +78,62 @@
 .btnDelete {
     color: #dc3545;
 }
+
 .btnDelete:hover {
     color: #fff;
     background-color: #c82333;
 }
+
+.btnPay {
+    color: #28a745;
+}
+
+.btnPay:hover {
+    color: #fff;
+    background-color: #1f7a34;
+}
+
+.btnHistory {
+    color: #17a2b8;
+}
+
+.btnHistory:hover {
+    color: #fff;
+    background-color: #138496;
+}
+
 .noResults {
     text-align: center;
     padding: 20px;
     font-style: italic;
     color: #6c757d;
 }
-.salaryCell { text-align: right; white-space: nowrap; font-weight: 500; color: #28a745; }
-.btnPay { color: #28a745; } /* Màu cho nút thanh toán lương */
-.btnPay:hover { color: #fff; background-color: #1f7a34; }
-.employeeName { font-weight: 500; color: #007bff; }
-.btnHistory {
-    color: #17a2b8; /* Màu info */
-}
-.btnHistory:hover {
-    color: #fff;
-    background-color: #138496; /* Đậm hơn của info */
-}
-/* Responsive cho bảng (data-label) */
-@media (max-width: 992px) { /* Điều chỉnh breakpoint nếu cần */
-    .employeeTable thead { display: none; }
-    .employeeTable tr { display: block; margin-bottom: 15px; border: 1px solid #ddd; /* ... */ }
-    .employeeTable td { display: block; text-align: right; padding-left: 45%; /* ... */ }
-    .employeeTable td:last-child { border-bottom: none; }
-    .employeeTable td::before { content: attr(data-label); position: absolute; left: 10px; width: calc(45% - 20px); /* ... */ }
+
+/* Responsive styles */
+@media (max-width: 992px) {
+    .tableContainer {
+        overflow-x: auto;
+    }
+
+    .employeeTable {
+        min-width: 1000px; /* Ensure table is scrollable on small screens */
+    }
+
+    .employeeTable td,
+    .employeeTable th {
+        display: table-cell;
+        text-align: left;
+    }
+
+    .employeeTable thead {
+        display: table-header-group;
+    }
+
+    .employeeTable tbody {
+        display: table-row-group;
+    }
+
+    .employeeTable tr {
+        display: table-row;
+    }
 }

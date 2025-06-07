@@ -1,14 +1,133 @@
-
 /* src/components/Attributes/AttributeTable.module.css */
 .tableContainer {
+    width: 100%;
     overflow-x: auto;
     margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table {
+    width: 100%;
+}
+
+.table :global(.ant-table-thead > tr > th) {
+    background-color: #fafafa;
+    font-weight: 600;
+}
+
+.table :global(.ant-table-tbody > tr:hover > td) {
+    background-color: #f5f5f5;
+}
+
+.table :global(.ant-table-row) {
+    cursor: pointer;
+}
+
+.table :global(.ant-table-cell) {
+    vertical-align: middle;
+}
+
+.table :global(.ant-btn) {
+    padding: 4px 8px;
+}
+
+.table :global(.ant-btn:hover) {
+    background-color: #f0f0f0;
+}
+
+.table :global(.ant-tag) {
+    min-width: 60px;
+    text-align: center;
+}
+
+.imageCell {
+    width: 80px;
+    padding: 8px;
+}
+
+.productImage {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.noImage {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border: 1px dashed #ddd;
+    border-radius: 4px;
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.actionBtn {
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.viewBtn {
+    background-color: #17a2b8;
+}
+
+.viewBtn:hover {
+    background-color: #138496;
+}
+
+.editBtn {
+    background-color: #ffc107;
+}
+
+.editBtn:hover {
+    background-color: #e0a800;
+}
+
+.deleteBtn {
+    background-color: #dc3545;
+}
+
+.deleteBtn:hover {
+    background-color: #c82333;
 }
 
 .stationeryTable {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stationeryTable :global(.ant-table-thead > tr > th) {
+    background: #fafafa;
+    font-weight: 600;
+}
+
+.stationeryTable :global(.ant-table-tbody > tr:hover > td) {
+    background: #f5f5f5;
+}
+
+.nameColumn {
+    color: #1890ff;
+    font-weight: 500;
 }
 
 .stationeryTable th, .stationeryTable td {
@@ -156,4 +275,361 @@
 .attributeTable th, .attributeTable td {
     /* ... */
     vertical-align: top; /* Căn text lên trên nếu có .smallText */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .stationeryTable :global(.ant-table-thead > tr > th),
+    .stationeryTable :global(.ant-table-tbody > tr > td) {
+        padding: 8px;
+    }
+}
+
+.tableContainer {
+    overflow-x: auto;
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.stationeryTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.stationeryTable th, .stationeryTable td {
+    border-bottom: 1px solid #e9ecef;
+    padding: 12px 15px;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.stationeryTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    border-top: none;
+}
+
+.stationeryTable th:not(:last-child) {
+    border-right: 1px solid #e9ecef;
+}
+
+.stationeryTable tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.stationeryTable tbody tr:hover {
+    background-color: #e9f5ff;
+}
+
+.stationeryImage {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.stationeryTitle {
+    font-weight: 500;
+    color: #007bff;
+    cursor: pointer;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stationeryTitle:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.descriptionCell {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.priceCell {
+    font-weight: 500;
+    text-align: right;
+    color: #28a745;
+}
+
+.stockCell {
+    text-align: center;
+}
+
+.actionsCell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.btnAction {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 8px;
+    margin: 0 4px;
+    border-radius: 50%;
+    color: #555;
+    transition: background-color 0.2s, color 0.2s;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btnAction:hover {
+    background-color: #f0f0f0;
+}
+
+.btnView {
+    color: #17a2b8;
+}
+
+.btnView:hover {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.btnEdit {
+    color: #ffc107;
+}
+
+.btnEdit:hover {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.btnDelete {
+    color: #dc3545;
+}
+
+.btnDelete:hover {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.noResults {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+    .stationeryTable thead {
+        display: none;
+    }
+
+    .stationeryTable tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .stationeryTable td {
+        display: block;
+        text-align: right;
+        padding: 10px 15px;
+        padding-left: 45%;
+        position: relative;
+        border-bottom: 1px dotted #e9ecef;
+        white-space: normal;
+    }
+
+    .stationeryTable td:last-child {
+        border-bottom: none;
+    }
+
+    .stationeryTable td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: calc(45% - 25px);
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .stationeryTable .actionsCell {
+        text-align: center;
+        padding-top: 15px;
+    }
+
+    .stationeryTable .stationeryImage {
+        display: block;
+        margin-left: auto;
+        margin-right: 0;
+    }
+}
+
+.tableContainer {
+    margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stationeryTable {
+    width: 100%;
+}
+
+.stationeryTable :global(.ant-table-thead > tr > th) {
+    background: #fafafa !important;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    padding: 16px !important;
+}
+
+.stationeryTable :global(.ant-table-tbody > tr > td) {
+    padding: 12px 16px !important;
+}
+
+.stationeryTable :global(.ant-table-tbody > tr:hover > td) {
+    background-color: #e9f5ff !important;
+}
+
+.imageContainer {
+    width: 45px;
+    height: 45px;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #eee;
+}
+
+.stationeryImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.stationeryTitle {
+    font-weight: 500;
+    color: #007bff !important;
+    cursor: pointer;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.stationeryTitle:hover {
+    text-decoration: underline;
+    color: #0056b3 !important;
+}
+
+.descriptionCell {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #666;
+}
+
+.priceCell {
+    font-weight: 500 !important;
+    color: #28a745 !important;
+}
+
+.stockCell {
+    text-align: center;
+    min-width: 60px;
+    font-weight: 500;
+}
+
+.actionsCell {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px;
+}
+
+.btnAction {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.btnAction:hover {
+    transform: scale(1.1);
+}
+
+.btnView {
+    color: #17a2b8 !important;
+}
+
+.btnView:hover {
+    background-color: #d1ecf1 !important;
+    color: #0c5460 !important;
+}
+
+.btnEdit {
+    color: #ffc107 !important;
+}
+
+.btnEdit:hover {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+}
+
+.btnDelete {
+    color: #dc3545 !important;
+}
+
+.btnDelete:hover {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .stationeryTable :global(.ant-table) {
+        font-size: 0.9rem;
+    }
+
+    .imageContainer {
+        width: 40px;
+        height: 40px;
+    }
+
+    .actionsCell {
+        gap: 4px;
+    }
+
+    .btnAction {
+        width: 28px !important;
+        height: 28px !important;
+    }
 }

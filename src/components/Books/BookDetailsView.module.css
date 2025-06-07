@@ -50,31 +50,44 @@
     border-bottom: 1px solid #eee;
 }
 
-.detailsGrid {
-    display: grid; /* Chuyển sang grid để dễ quản lý hơn */
-    grid-template-columns: 220px 1fr; /* Cột ảnh cố định, cột thông tin linh hoạt */
-    gap: 25px;
+.detailsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-@media (max-width: 768px) { /* Responsive cho grid */
-    .detailsGrid {
-        grid-template-columns: 1fr; /* Một cột trên màn hình nhỏ */
-    }
-    .detailsImageContainer {
-        text-align: center; /* Căn giữa ảnh trên mobile */
-    }
+.imageContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
 }
 
-
-.detailsImageContainer img {
-    width: 100%;
-    max-width: 200px; /* Có thể tăng/giảm tùy ý */
+.bookImage {
+    max-width: 300px;
     height: auto;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.descriptions {
+    width: 100%;
+}
+
+.descriptions :global(.ant-descriptions-item-label) {
+    width: 120px;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .bookImage {
+        max-width: 100%;
+    }
+
+    .descriptions :global(.ant-descriptions-item-label) {
+        width: 100px;
+    }
+}
 
 .detailsInfo p {
     margin-bottom: 12px; /* Tăng khoảng cách */
@@ -94,7 +107,6 @@
     color: #212529;
     word-break: break-word; /* Xử lý từ dài */
 }
-
 
 .detailsActions {
     margin-top: 30px; /* Tăng khoảng cách */

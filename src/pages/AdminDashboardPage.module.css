@@ -1,0 +1,78 @@
+.container {
+    padding: 24px;
+}
+
+.container h2 {
+    margin-bottom: 24px;
+    color: #333;
+}
+
+.statsRow {
+    margin-bottom: 24px;
+}
+
+.statsRow .ant-card {
+    height: 100%;
+}
+
+.statsRow .ant-statistic-title {
+    font-size: 16px;
+    color: #666;
+}
+
+.statsRow .ant-statistic-content {
+    font-size: 24px;
+    color: #333;
+}
+
+.tablesRow {
+    margin-bottom: 24px;
+}
+
+.tableCard {
+    height: 100%;
+}
+
+.tableCard .ant-card-head {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.tableCard .ant-card-head-title {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.tableFooter {
+    margin-top: 16px;
+    text-align: right;
+}
+
+.tableFooter .ant-btn-link {
+    padding: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .statsRow .ant-statistic-content {
+        font-size: 20px;
+    }
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+/* Error state */
+.error {
+    color: #ff4d4f;
+    margin-bottom: 16px;
+    text-align: center;
+} 

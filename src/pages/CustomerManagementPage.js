@@ -1,198 +1,344 @@
 // src/pages/CustomerManagementPage.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styles from './CustomerManagementPage.module.css';
 import CustomerTable from '../components/Customers/CustomerTable';
 import CustomerModal from '../components/Customers/CustomerModal';
 import PurchaseHistoryModal from '../components/Customers/PurchaseHistoryModal';
 import ConfirmModal from '../components/Common/ConfirmModal';
-import Pagination from '../components/Common/Pagination';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import customerService from '../services/customerService';
+import { FaPlus, FaSearch, FaFilter, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { 
+    Table, Button, Input, Space, Modal, Form,
+    message, Tag, Row, Col, Card, Statistic, 
+    Divider, Typography
+} from 'antd';
+import { 
+    UserOutlined, ShoppingOutlined, 
+    DollarOutlined, PlusOutlined
+} from '@ant-design/icons';
 
-// Dữ liệu mẫu
-const initialCustomers = [
-    { id: 'CUS001', full_name: 'Nguyễn Văn An', phone: '0901234567', email: 'an.nv@example.com', address: '123 Đường ABC, Quận 1, TP.HCM', note: 'Khách VIP', store_id: 'STORE001', totalSpent: 5500000, orderCount: 5 },
-    { id: 'CUS002', full_name: 'Trần Thị Bình', phone: '0912345678', email: 'binh.tt@example.com', address: '456 Đường XYZ, Quận 2, TP.HCM', note: '', store_id: 'STORE001', totalSpent: 1200000, orderCount: 2 },
-    // Thêm nhiều khách hàng
-];
+const { Title } = Typography;
 
-// Dữ liệu mẫu cho lịch sử mua hàng
-const samplePurchaseHistory = {
-    'CUS001': [
-        { id: 'ORD001', order_date: '2023-10-01', items: [{name: 'Sách React', quantity: 1}], total_amount: 220000, status: 'Đã giao' },
-        { id: 'ORD005', order_date: '2023-10-15', items: [{name: 'Sách Node.js', quantity: 2}, {name: 'Bút bi', quantity: 5}], total_amount: 350000, status: 'Đang xử lý' },
-    ],
-    'CUS002': [
-        { id: 'ORD002', order_date: '2023-09-20', items: [{name: 'Vở học sinh', quantity: 10}], total_amount: 120000, status: 'Đã giao' },
-    ]
+const initialCustomerForm = {
+    id: '', full_name: '', phone: '', email: '', address: '', note: '',
 };
 
-
 const CustomerManagementPage = () => {
-    const [customers, setCustomers] = useState(initialCustomers);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const [customers, setCustomers] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+    const [pageSize, setPageSize] = useState(parseInt(searchParams.get('limit')) || 10);
+    const [total, setTotal] = useState(0);
+
+    // Search and Filters
+    const [searchTerm, setSearchTerm] = useState(searchParams.get('searchTerm') || '');
+    const [isFilterVisible, setIsFilterVisible] = useState(false);
+
+    // Statistics
+    const [statistics, setStatistics] = useState({
+        totalCustomers: 0,
+        totalOrders: 0,
+        totalRevenue: 0
+    });
+
+    // Modals
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
     const [customerModalMode, setCustomerModalMode] = useState('add');
     const [currentCustomer, setCurrentCustomer] = useState(null);
 
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-    const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState(null);
     const [purchaseHistory, setPurchaseHistory] = useState([]);
+    const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
+    const [historyTotalPages, setHistoryTotalPages] = useState(0);
+    const historyItemsPerPage = 5;
 
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-    const [customerIdToDelete, setCustomerIdToDelete] = useState(null);
+    const [itemToDelete, setItemToDelete] = useState({ id: null, name: '' });
 
-    const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const fetchCustomers = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const params = {
+                page: currentPage,
+                limit: pageSize,
+                sortBy: searchParams.get('sortBy') || 'full_name',
+                sortOrder: searchParams.get('sortOrder') || 'asc',
+                searchTerm: searchParams.get('searchTerm') || ''
+            };
 
-    // Logic filter và pagination
-    const filteredCustomers = useMemo(() => {
-        return customers.filter(customer =>
-            customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.phone.includes(searchTerm) ||
-            (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-    }, [customers, searchTerm]);
+            // Remove empty params
+            Object.keys(params).forEach(key => 
+                (params[key] === undefined || params[key] === '') && delete params[key]
+            );
 
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentCustomersOnPage = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+            const data = await customerService.getAllCustomers(params);
+            setCustomers(data.customers || []);
+            setTotal(data.totalCustomers || 0);
+            setCurrentPage(data.currentPage || currentPage);
 
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
+            // Update statistics
+            setStatistics({
+                totalCustomers: data.totalCustomers || 0,
+                totalOrders: data.totalOrders || 0,
+                totalRevenue: data.totalRevenue || 0
+            });
+
+        } catch (err) {
+            setError(err.message || 'Không thể tải danh sách khách hàng.');
+            setCustomers([]);
+            setTotal(0);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentPage, pageSize, searchParams]);
+
+    useEffect(() => {
+        fetchCustomers();
+    }, [fetchCustomers]);
+
+    const handlePageChange = (page, pageSize) => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('page', page.toString());
+        newParams.set('limit', pageSize.toString());
+        setSearchParams(newParams);
+        setCurrentPage(page);
+        setPageSize(pageSize);
     };
 
-    const handleOpenCustomerModal = (mode, customer = null) => {
+    const handleSearchChange = (e) => {
+        const newSearchTerm = e.target.value;
+        const newParams = new URLSearchParams(searchParams);
+        if (newSearchTerm) newParams.set('searchTerm', newSearchTerm);
+        else newParams.delete('searchTerm');
+        newParams.set('page', '1');
+        setSearchParams(newParams);
+    };
+
+    const openCustomerModal = (mode, customer = null) => {
         setCustomerModalMode(mode);
         setCurrentCustomer(customer);
         setIsCustomerModalOpen(true);
     };
 
-    const handleCloseCustomerModal = () => {
+    const closeCustomerModal = () => {
         setIsCustomerModalOpen(false);
         setCurrentCustomer(null);
     };
 
-    const handleSubmitCustomer = (formData) => {
-        // TODO: Gọi API để thêm/sửa khách hàng
-        console.log("Submitting customer:", formData);
-        if (customerModalMode === 'add') {
-            const newCustomer = { ...formData, id: `CUS${Date.now().toString().slice(-3)}`, totalSpent: 0, orderCount: 0 };
-            setCustomers(prev => [newCustomer, ...prev]);
-            alert('Thêm khách hàng thành công!');
-        } else {
-            setCustomers(prev => prev.map(cust => cust.id === formData.id ? { ...cust, ...formData } : cust));
-            alert('Cập nhật thông tin khách hàng thành công!');
+    const handleSubmitCustomer = async (formData) => {
+        setIsLoading(true);
+        try {
+            if (customerModalMode === 'add') {
+                await customerService.createCustomer(formData);
+                message.success('Thêm khách hàng thành công!');
+            } else {
+                await customerService.updateCustomer(currentCustomer._id || currentCustomer.id, formData);
+                message.success('Cập nhật khách hàng thành công!');
+            }
+            closeCustomerModal();
+            fetchCustomers();
+        } catch (err) {
+            message.error(err.message || 'Lỗi xử lý thông tin khách hàng.');
+        } finally {
+            setIsLoading(false);
         }
-        // Có thể cần tính lại trang hiện tại
-        const newTotalPages = Math.ceil(customers.length / itemsPerPage); // Tính trên customers chưa filter
-        if (currentPage > newTotalPages && newTotalPages > 0) setCurrentPage(newTotalPages);
-        else if (newTotalPages === 0) setCurrentPage(1);
-
-        handleCloseCustomerModal();
     };
 
-    const handleDeleteCustomerClick = (customerId) => {
-        setCustomerIdToDelete(customerId);
+    const handleDeleteClick = (customerId, customerName) => {
+        setItemToDelete({ id: customerId, name: customerName });
         setIsConfirmModalOpen(true);
     };
 
-    const handleConfirmDeleteCustomer = () => {
-        // TODO: Gọi API để xóa khách hàng
-        console.log("Deleting customer ID:", customerIdToDelete);
-        const updatedCustomers = customers.filter(cust => cust.id !== customerIdToDelete);
-        setCustomers(updatedCustomers);
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete.id) return;
+        setIsLoading(true);
+        try {
+            await customerService.deleteCustomer(itemToDelete.id);
+            message.success(`Xóa khách hàng "${itemToDelete.name}" thành công!`);
+            setIsConfirmModalOpen(false);
+            
+            let pageToFetch = currentPage;
+            if (customers.length === 1 && currentPage > 1 && (total - 1) < ((currentPage - 1) * pageSize) + 1) {
+                pageToFetch = currentPage - 1;
+            }
+            
+            const newParams = new URLSearchParams();
+            if (searchTerm) newParams.set('searchTerm', searchTerm);
+            newParams.set('page', pageToFetch.toString());
+            setSearchParams(newParams);
 
-        // Tính toán lại trang hiện tại
-        const filteredAfterDelete = updatedCustomers.filter(c => c.full_name.toLowerCase().includes(searchTerm.toLowerCase()) /* ... */);
-        const newTotalPages = Math.ceil(filteredAfterDelete.length / itemsPerPage);
-        if (currentPage > newTotalPages && newTotalPages > 0) {
-            setCurrentPage(newTotalPages);
-        } else if (newTotalPages === 0) {
-            setCurrentPage(1);
-        } else if (currentCustomersOnPage.length === 1 && currentPage > 1 && newTotalPages < totalPages) {
-             setCurrentPage(currentPage -1);
+        } catch (err) {
+            message.error(err.message || 'Lỗi khi xóa khách hàng.');
+            setIsConfirmModalOpen(false);
+        } finally {
+            setIsLoading(false);
+            setItemToDelete({ id: null, name: '' });
         }
-
-        setIsConfirmModalOpen(false);
-        setCustomerIdToDelete(null);
-        alert('Xóa khách hàng thành công!');
     };
 
-    const handleViewHistory = (customer) => {
-        // TODO: Fetch lịch sử mua hàng từ API cho customer.id
-        console.log("Viewing history for:", customer.full_name);
-        setSelectedCustomerForHistory(customer);
-        setPurchaseHistory(samplePurchaseHistory[customer.id] || []); // Dùng dữ liệu mẫu
+    const fetchPurchaseHistory = async (customerId, page = 1) => {
+        setIsLoading(true);
+        try {
+            const params = { page, limit: historyItemsPerPage, sortBy: 'order_date', sortOrder: 'desc' };
+            const data = await customerService.getPurchaseHistory(customerId, params);
+            setPurchaseHistory(data.history || []);
+            setHistoryCurrentPage(data.currentPage || 1);
+            setHistoryTotalPages(data.totalPages || 0);
+        } catch (err) {
+            message.error(err.message || "Không thể tải lịch sử mua hàng.");
+            setPurchaseHistory([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const openHistoryModal = (customer) => {
+        setCurrentCustomer(customer);
+        setHistoryCurrentPage(1);
+        fetchPurchaseHistory(customer._id || customer.id, 1);
         setIsHistoryModalOpen(true);
     };
 
+    const handleHistoryPageChange = (page) => {
+        if (currentCustomer) {
+            fetchPurchaseHistory(currentCustomer._id || currentCustomer.id, page);
+        }
+    };
 
     return (
         <div className={styles.pageContainer}>
-            <div className={styles.pageHeader}>
-                <h1>Quản Lý Khách Hàng</h1>
-            </div>
+            <Row gutter={[16, 16]} className={styles.statsRow}>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Tổng số khách hàng"
+                            value={statistics.totalCustomers}
+                            prefix={<UserOutlined />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Tổng đơn hàng"
+                            value={statistics.totalOrders}
+                            prefix={<ShoppingOutlined />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Tổng doanh thu"
+                            value={statistics.totalRevenue}
+                            prefix={<DollarOutlined />}
+                            formatter={(value) => `${value.toLocaleString('vi-VN')} VNĐ`}
+                        />
+                    </Card>
+                </Col>
+            </Row>
 
-            <div className={styles.controlsBar}>
-                <div className={styles.searchWrapper}>
-                    <FaSearch className={styles.searchIcon} />
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm khách hàng (tên, SĐT, email)..."
-                        value={searchTerm}
-                        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1);}}
-                        className={styles.searchInput}
-                    />
+            <Divider />
+
+            <Card>
+                <div className={styles.tableHeader}>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Row gutter={[16, 16]} align="middle" justify="space-between">
+                            <Col xs={24} sm={16} md={12} lg={8}>
+                                <Input
+                                    placeholder="Tìm kiếm khách hàng..."
+                                    prefix={<FaSearch />}
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    style={{ width: '100%' }}
+                                />
+                            </Col>
+                            <Col xs={24} sm={8} md={12} lg={16} style={{ textAlign: 'right' }}>
+                                <Space>
+                                    <Button
+                                        icon={isFilterVisible ? <FaChevronUp /> : <FaChevronDown />}
+                                        onClick={() => setIsFilterVisible(!isFilterVisible)}
+                                    >
+                                        Bộ lọc nâng cao
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        icon={<PlusOutlined />}
+                                        onClick={() => openCustomerModal('add')}
+                                    >
+                                        Thêm khách hàng
+                                    </Button>
+                                </Space>
+                            </Col>
+                        </Row>
+
+                        {isFilterVisible && (
+                            <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
+                                {/* Add your filter components here */}
+                            </Row>
+                        )}
+                    </Space>
                 </div>
-                <button
-                    className={`${styles.btn} ${styles.btnPrimary}`}
-                    onClick={() => handleOpenCustomerModal('add')}
-                >
-                    <FaPlus /> Thêm Khách Hàng
-                </button>
-            </div>
 
-            <CustomerTable
-                customers={currentCustomersOnPage}
-                onEdit={(cust) => handleOpenCustomerModal('edit', cust)}
-                onDelete={handleDeleteCustomerClick}
-                onViewHistory={handleViewHistory}
-            />
+                {isLoading && <div className={styles.loadingOverlay}><div className={styles.loader}></div></div>}
+                {error && <div className={styles.errorBanner}>{error}</div>}
 
-            {totalPages > 0 && filteredCustomers.length > itemsPerPage && (
-                 <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={filteredCustomers.length}
-                />
-            )}
+                {!isLoading && customers.length > 0 && !error && (
+                    <CustomerTable
+                        customers={customers}
+                        onEdit={openCustomerModal}
+                        onDelete={(customerId) => handleDeleteClick(customerId, customers.find(c => c._id === customerId || c.id === customerId)?.full_name)}
+                        onViewHistory={openHistoryModal}
+                        pagination={{
+                            current: currentPage,
+                            pageSize: pageSize,
+                            total: total,
+                            onChange: handlePageChange,
+                            showSizeChanger: true,
+                            showTotal: (total) => `Tổng ${total} khách hàng`
+                        }}
+                    />
+                )}
+                {!isLoading && customers.length === 0 && !error && (
+                    <div className={styles.noResultsContainer}>
+                        <p className={styles.noResults}>Không có khách hàng nào.</p>
+                    </div>
+                )}
+            </Card>
 
             <CustomerModal
                 isOpen={isCustomerModalOpen}
-                onClose={handleCloseCustomerModal}
+                onClose={closeCustomerModal}
                 onSubmit={handleSubmitCustomer}
                 currentCustomer={currentCustomer}
                 mode={customerModalMode}
             />
 
-            {selectedCustomerForHistory && (
+            {currentCustomer && isHistoryModalOpen && (
                 <PurchaseHistoryModal
                     isOpen={isHistoryModalOpen}
                     onClose={() => setIsHistoryModalOpen(false)}
-                    customerName={selectedCustomerForHistory.full_name}
+                    customerName={currentCustomer.full_name}
                     history={purchaseHistory}
+                    currentPage={historyCurrentPage}
+                    totalPages={historyTotalPages}
+                    onPageChange={handleHistoryPageChange}
                 />
             )}
 
             <ConfirmModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                onConfirm={handleConfirmDeleteCustomer}
+                onConfirm={handleConfirmDelete}
                 title="Xác nhận xóa Khách Hàng"
-                message={`Bạn có chắc chắn muốn xóa khách hàng "${customers.find(c=>c.id === customerIdToDelete)?.full_name}" không?`}
+                message={`Bạn có chắc chắn muốn xóa khách hàng "${itemToDelete.name}" không?`}
             />
         </div>
     );

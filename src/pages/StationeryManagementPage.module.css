@@ -4,19 +4,16 @@
 
 /* src/pages/BookManagementPage.module.css */
 .pageContainer {
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    background-color: #f0f2f5;
+    min-height: 100vh;
 }
 
 .pageHeader {
+    margin-bottom: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
 }
 
 .pageHeader h1 {
@@ -114,58 +111,125 @@
 
 /* Khu vực filter chi tiết */
 .advancedFilterBar {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.07);
-    /* transition cho ẩn hiện nếu bạn muốn */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.advancedFilterBar.open {
+    max-height: 500px;
+    transition: max-height 0.5s ease-in;
 }
 
 .filterGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    gap: 16px;
+    margin-top: 16px;
 }
 
 .filterControl {
     width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    box-sizing: border-box;
 }
-.filterControl:focus {
-    outline: none;
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-
-/* Style cho react-select trong filter bar */
-.advancedFilterBar .react-select-container .react-select__control {
-    min-height: auto !important;
-    height: calc(1.5em + 0.75rem + 2px + 16px); /* 2*8px padding */
-    padding-top: 0;
-    padding-bottom: 0;
-    border-radius: 5px !important;
-    border-color: #ced4da !important;
-}
-.advancedFilterBar .react-select-container .react-select__control--is-focused {
-    border-color: #80bdff !important;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25) !important;
-}
-.advancedFilterBar .react-select-container .react-select__placeholder {
-    color: #6c757d !important;
-}
-.advancedFilterBar .react-select-container .react-select__indicators {
-     height: calc(1.5em + 0.75rem + 16px - 2px); /* Trừ border */
-}
-
 
 .filterActions {
-    margin-top: 15px;
-    text-align: right;
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.tableCard {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-top: 24px;
+}
+
+.loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.errorBanner {
+    background-color: #fff2f0;
+    border: 1px solid #ffccc7;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    color: #ff4d4f;
+}
+
+.noResultsContainer {
+    text-align: center;
+    padding: 48px;
+    background: white;
+    border-radius: 8px;
+    margin-top: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.noResults {
+    color: #8c8c8c;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Animation for advanced filters */
+.advancedFilterBar {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.advancedFilterBar.open {
+    max-height: 500px;
+    transition: max-height 0.5s ease-in;
+}
+
+/* Custom styles for react-select */
+:global(.react-select-container) {
+    width: 100%;
+}
+
+:global(.react-select__control) {
+    border-radius: 6px;
+    border-color: #d9d9d9;
+    box-shadow: none;
+}
+
+:global(.react-select__control:hover) {
+    border-color: #40a9ff;
+}
+
+:global(.react-select__control--is-focused) {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pageContainer {
+        padding: 16px;
+    }
+
+    .filterGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .pageHeader {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
 }
 
 /* Table Styles */
@@ -253,16 +317,86 @@
     background-color: #c82333;
 }
 
-.noResultsContainer {
-    text-align: center;
-    padding: 40px 20px; /* Tăng padding */
-    border: 1px dashed #e0e0e0; /* Thêm border dashed */
-    border-radius: 5px;
-    margin-top: 20px;
-    background-color: #f9f9f9;
+.statsSection {
+    margin-bottom: 24px;
 }
-.noResults {
-    font-style: italic;
-    color: #6c757d;
-    font-size: 1rem; /* Tăng font size */
+
+.statsSection :global(.ant-card) {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.statsSection :global(.ant-statistic-title) {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.statsSection :global(.ant-statistic-content) {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.tableHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.actionsContainer {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filtersCard {
+    margin-bottom: 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filtersForm {
+    padding: 16px;
+}
+
+.filterActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pageContainer {
+        padding: 16px;
+    }
+
+    .statsSection {
+        margin-bottom: 16px;
+    }
+
+    .actionsContainer {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .actionsContainer :global(.ant-space) {
+        width: 100%;
+    }
+
+    .actionsContainer :global(.ant-input-search) {
+        width: 100% !important;
+    }
+
+    .actionsContainer :global(.ant-btn) {
+        width: 100%;
+    }
 }

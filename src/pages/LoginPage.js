@@ -1,61 +1,86 @@
 // src/pages/LoginPage.js
 import React, { useState } from 'react';
-import LoginForm from '../components/auth/LoginForm';
-// import authService from '../services/authService'; // You'll uncomment and use this later
+import { Form, Input, Button, Card, message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import styles from './LoginPage.module.css';
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    // const navigate = useNavigate(); // If using React Router for navigation after login
+    const [loading, setLoading] = useState(false);
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
-    const handleLoginSubmit = async (event) => {
-        event.preventDefault();
-        setIsLoading(true);
-        setError('');
-
-        console.log('Attempting login with:', { username, password });
-
-        // Simulate API call
-        // In a real app, you would call your authService here:
-        // try {
-        //     const data = await authService.login(username, password);
-        //     console.log('Login successful (simulated):', data);
-        //     // navigate('/dashboard'); // Redirect on success
-        // } catch (err) {
-        //     setError(err.message || 'Login failed. Please try again.');
-        //     console.error('Login error (simulated):', err);
-        // } finally {
-        //     setIsLoading(false);
-        // }
-
-        // --- Simulated Logic ---
-        setTimeout(() => {
-            if (username === "admin" && password === "password") {
-                console.log("Login successful (simulated)");
-                // In a real app, you'd update auth state and navigate
-                alert("Login Successful! (Simulated)"); // Placeholder
+    const onFinish = async (values) => {
+        setLoading(true);
+        try {
+            const result = await login(values.username, values.password);
+            if (result.success) {
+                message.success('Đăng nhập thành công!');
+                // Chuyển hướng dựa trên vai trò từ response
+                const { user } = result;
+                const redirectPath = user.role === 'admin' 
+                    ? '/admin/dashboard'
+                    : `/store/${user.storeId}/dashboard`;
+                
+                // Sử dụng replace: true để thay thế history entry hiện tại
+                navigate(redirectPath, { replace: true });
             } else {
-                setError('Invalid username or password.');
-                console.log("Login failed (simulated)");
+                message.error(result.message || 'Đăng nhập thất bại');
             }
-            setIsLoading(false);
-        }, 1500);
-        // --- End Simulated Logic ---
+        } catch (error) {
+            message.error('Đăng nhập thất bại: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexGrow: 1 }}>
-            <LoginForm
-                username={username}
-                password={password}
-                onUsernameChange={(e) => setUsername(e.target.value)}
-                onPasswordChange={(e) => setPassword(e.target.value)}
-                onSubmit={handleLoginSubmit}
-                isLoading={isLoading}
-                error={error}
-            />
+        <div className={styles.loginContainer}>
+            <Card className={styles.loginCard}>
+                <h1 className={styles.loginTitle}>Đăng Nhập</h1>
+                <Form
+                    name="login"
+                    onFinish={onFinish}
+                    autoComplete="off"
+                    layout="vertical"
+                >
+                    <Form.Item
+                        name="username"
+                        rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
+                    >
+                        <Input
+                            prefix={<UserOutlined />}
+                            placeholder="Tên đăng nhập"
+                            size="large"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined />}
+                            placeholder="Mật khẩu"
+                            size="large"
+                        />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            loading={loading}
+                            className={styles.loginButton}
+                            size="large"
+                            block
+                        >
+                            Đăng Nhập
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
         </div>
     );
 };

@@ -10,15 +10,20 @@
     justify-content: center;
     align-items: center;
     z-index: 1050; /* Dưới ConfirmModal */
+    padding: 20px;
 }
 
 .modal {
-    background-color: white;
-    padding: 25px 30px;
+   background-color: white;
+    padding: 25px 30px; /* Giữ padding này cho nội dung bên trong */
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     width: 90%;
-    max-width: 500px;
+    max-width: 500px; /* Hoặc 600px, 700px tùy form */
+    max-height: 90vh; /* << QUAN TRỌNG: Giới hạn chiều cao tối đa */
+    overflow-y: auto;  /* << QUAN TRỌNG: Cho phép cuộn theo chiều dọc */
+    display: flex;      /* << THÊM: Để dùng flex-direction */
+    flex-direction: column; /* << THÊM: Để header, content, footer xếp dọc */
 }
 
 .title {
@@ -112,3 +117,37 @@
     display: inline-block;
 }
 .linkButton:hover { color: #0056b3; }
+
+.employeeForm {
+    padding: 20px 0;
+}
+
+.employeeForm :global(.ant-form-item) {
+    margin-bottom: 16px;
+}
+
+.employeeForm :global(.ant-input),
+.employeeForm :global(.ant-select-selector) {
+    border-radius: 4px;
+}
+
+.employeeForm :global(.ant-input-number) {
+    width: 100%;
+}
+
+.employeeForm :global(.ant-form-item-label) {
+    font-weight: 500;
+}
+
+.employeeForm :global(.ant-form-item-required)::before {
+    display: none !important;
+}
+
+.employeeForm :global(.ant-form-item-required)::after {
+    display: inline-block;
+    margin-right: 4px;
+    color: #ff4d4f;
+    font-size: 14px;
+    line-height: 1;
+    content: '*';
+}

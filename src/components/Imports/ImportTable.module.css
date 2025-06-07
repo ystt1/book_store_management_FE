@@ -1,0 +1,163 @@
+.tableContainer {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.importTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.importTable th,
+.importTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.importTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+.importTable tbody tr {
+    transition: background-color 0.2s;
+}
+
+.importTable tbody tr:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.expandedRow {
+    background-color: #f0f7ff !important;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.viewButton,
+.deleteButton {
+    padding: 6px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.viewButton {
+    background-color: #e6f7ff;
+    color: #1890ff;
+}
+
+.viewButton:hover {
+    background-color: #bae7ff;
+}
+
+.deleteButton {
+    background-color: #fff1f0;
+    color: #ff4d4f;
+}
+
+.deleteButton:hover {
+    background-color: #ffa39e;
+}
+
+/* Import Details Styles */
+.importDetails {
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.importDetails h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detailItem {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detailLabel {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.detailValue {
+    font-weight: 500;
+    color: #333;
+}
+
+.itemsTable {
+    margin-top: 20px;
+}
+
+.itemsTable h4 {
+    margin-bottom: 15px;
+}
+
+.itemsTable table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.itemsTable th,
+.itemsTable td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #eee;
+}
+
+.itemsTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.itemsTable tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+    .tableContainer {
+        overflow-x: auto;
+    }
+
+    .importTable {
+        min-width: 800px;
+    }
+
+    .detailsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .itemsTable {
+        overflow-x: auto;
+    }
+
+    .itemsTable table {
+        min-width: 700px;
+    }
+} 

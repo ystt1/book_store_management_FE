@@ -1,56 +1,114 @@
 // src/components/Attributes/AttributeTable.js
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import styles from './AttributeTable.module.css';
+// Import Ant Design components
+import {
+    Table, Button, Space, Tag, Tooltip, Typography
+} from 'antd';
+// Import Ant Design Icons
+import {
+    EditOutlined, DeleteOutlined
+} from '@ant-design/icons';
+
+const { Text } = Typography;
 
 const AttributeTable = ({ data, attributeType, onEdit, onDelete }) => {
-    const navigate = useNavigate();
-
-    const handleRowClick = (item) => {
-        // ... (logic giữ nguyên) ...
+    const getAttributeNameLabel = () => {
+        switch (attributeType) {
+            case 'supplier': return 'Nhà Cung Cấp';
+            case 'publisher': return 'Nhà Xuất Bản';
+            case 'category': return 'Danh Mục';
+            default: return 'Tên';
+        }
     };
 
-    const getAttributeNameLabel = () => { /* ... giữ nguyên ... */ };
+    // Define columns for Ant Design Table
+    const columns = [
+        {
+            title: 'STT',
+            key: 'stt',
+            render: (text, record, index) => index + 1,
+            width: 60,
+        },
+        {
+            title: getAttributeNameLabel(),
+            dataIndex: 'name',
+            key: 'name',
+            render: (text) => <Tooltip title={text}><Text ellipsis={{ tooltip: text }}>{text || '-'}</Text></Tooltip>,
+            width: 200,
+        },
+    ];
+
+    // Add specific columns based on attribute type
+    if (attributeType !== 'category') {
+        columns.push(
+            {
+                title: 'Số Điện Thoại',
+                dataIndex: ['contact_info', 'phone'],
+                key: 'phone',
+                render: (phone) => phone || '-',
+                width: 150,
+            },
+            {
+                title: 'Email',
+                dataIndex: ['contact_info', 'email'],
+                key: 'email',
+                render: (email) => email || '-',
+                width: 200,
+            },
+            {
+                title: 'Địa Chỉ',
+                dataIndex: ['contact_info', 'address'],
+                key: 'address',
+                render: (address) => <Tooltip title={address}><Text ellipsis={{ tooltip: address }}>{address || '-'}</Text></Tooltip>,
+                width: 300,
+            }
+        );
+    } else {
+        columns.push({
+            title: 'Mô Tả',
+            dataIndex: 'description',
+            key: 'description',
+            render: (description) => <Tooltip title={description}><Text ellipsis={{ tooltip: description }}>{description || '-'}</Text></Tooltip>,
+            width: 400,
+        });
+    }
+
+    // Add Action column
+    columns.push({
+        title: 'Thao Tác',
+        key: 'action',
+        render: (_, record) => (
+            <Space size="small">
+                <Tooltip title="Chỉnh sửa">
+                    <Button 
+                        type="text"
+                        icon={<EditOutlined />}
+                        onClick={() => onEdit('edit', record)}
+                    />
+                </Tooltip>
+                <Tooltip title="Xóa">
+                    <Button 
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => onDelete(record._id || record.id, record.name)}
+                    />
+                </Tooltip>
+            </Space>
+        ),
+        width: 120,
+    });
 
     return (
         <div className={styles.tableContainer}>
-            <table className={styles.attributeTable}>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tên {getAttributeNameLabel()}</th>
-                        {attributeType === 'category' && <th>Mô tả</th>}
-                        <th>Số lượng sách <span className={styles.smallText}>(liên kết)</span></th> {/* Sửa lại */}
-                        <th>Tổng SL Bán <span className={styles.smallText}>(từ sách)</span></th> {/* Sửa lại */}
-                        <th>Tổng SL Tồn <span className={styles.smallText}>(từ sách)</span></th> {/* Sửa lại */}
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data && data.length > 0 ? (
-                        data.map(item => (
-                            <tr key={item.id} className={styles.tableRow}>
-                                <td data-label="ID:" onClick={() => handleRowClick(item)} className={styles.clickableCell}>{item.id}</td>
-                                <td data-label={`Tên ${getAttributeNameLabel()}:`} onClick={() => handleRowClick(item)} className={styles.clickableCell}>{item.name}</td>
-                                {attributeType === 'category' && <td data-label="Mô tả:">{item.description || 'N/A'}</td>}
-                                <td data-label="SL Sách:" onClick={() => handleRowClick(item)} className={styles.clickableCell}>{item.bookCount != null ? item.bookCount : 'N/A'}</td>
-                                <td data-label="Tổng Bán:" onClick={() => handleRowClick(item)} className={styles.clickableCell}>{item.totalSold != null ? item.totalSold : 'N/A'}</td>
-                                <td data-label="Tổng Tồn:" onClick={() => handleRowClick(item)} className={styles.clickableCell}>{item.totalStock != null ? item.totalStock : 'N/A'}</td>
-                                <td data-label="Hành động:" className={styles.actionsCell}>
-                                    <button onClick={() => onEdit(item)} className={`${styles.btnAction} ${styles.btnEdit}`} title="Sửa">✏️</button>
-                                    <button onClick={() => onDelete(item.id, attributeType)} className={`${styles.btnAction} ${styles.btnDelete}`} title="Xóa">🗑️</button>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={attributeType === 'category' ? 7 : 6} className={styles.noResults}> {/* Cập nhật colSpan */}
-                                Không có dữ liệu {getAttributeNameLabel().toLowerCase()}.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            <Table
+                columns={columns}
+                dataSource={data}
+                rowKey="_id"
+                pagination={false}
+                scroll={{ x: 'max-content' }}
+            />
         </div>
     );
 };

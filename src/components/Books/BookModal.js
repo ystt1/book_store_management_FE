@@ -1,7 +1,10 @@
-// src/components/Books/BookModal.js
-import React, { useEffect } from 'react'; // Đã xóa useState nếu không cần
-import Select from 'react-select'; // THÊM DÒNG NÀY
+import React, { useEffect } from 'react';
+import { Modal, Form, Input, Select, InputNumber, Upload, Button, message } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import styles from './BookModal.module.css';
+
+const { TextArea } = Input;
+const { Option } = Select;
 
 const BookModal = ({
     isOpen,
@@ -10,171 +13,204 @@ const BookModal = ({
     bookData,
     setBookData,
     mode,
-    sampleCategories = [], // Đảm bảo các props này được truyền từ BookManagementPage
-    samplePublishers = [],
-    sampleSuppliers = []
+    sampleCategories,
+    samplePublishers,
+    sampleSuppliers,
+    isLoading
 }) => {
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setBookData(prev => ({ ...prev, [name]: value }));
+    const [form] = Form.useForm();
+
+    useEffect(() => {
+        if (isOpen && bookData) {
+            form.setFieldsValue({
+                title: bookData.title,
+                author: bookData.author,
+                categories: bookData.categories,
+                publisher: bookData.publisher,
+                supplier: bookData.supplier,
+                price: bookData.price,
+                stock_quantity: bookData.stock_quantity,
+                description: bookData.description
+            });
+        }
+    }, [isOpen, bookData, form]);
+
+    const handleSubmit = async (values) => {
+        if (!values.categories || values.categories.length === 0) {
+            message.error("Vui lòng chọn ít nhất một danh mục.");
+            return;
+        }
+        await onSubmit(values);
     };
 
-    const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            if (bookData.imagePreview) {
-                URL.revokeObjectURL(bookData.imagePreview);
-            }
+    const handleImageChange = (info) => {
+        if (info.file.status === 'uploading') {
+            return;
+        }
+        if (info.file.status === 'done') {
+            // Get this url from response in real world
             setBookData(prev => ({
                 ...prev,
-                image: file,
-                imagePreview: URL.createObjectURL(file)
-            }));
-        } else {
-             if (bookData.imagePreview) {
-                URL.revokeObjectURL(bookData.imagePreview);
-            }
-            setBookData(prev => ({
-                ...prev,
-                image: null,
-                imagePreview: ''
+                image: info.file.originFileObj,
+                imagePreview: URL.createObjectURL(info.file.originFileObj)
             }));
         }
     };
 
-    const handleCategoryChange = (selectedOptions) => {
-        setBookData(prev => ({ ...prev, categories: selectedOptions || [] }));
-    };
-
-    const handleSupplierChange = (selectedOption) => {
-        setBookData(prev => ({ ...prev, supplier: selectedOption }));
-    };
-
-    const handlePublisherChange = (selectedOption) => {
-        setBookData(prev => ({...prev, publisher: selectedOption}));
-    }
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const dataToSubmit = {
-            ...bookData,
-            category_ids: bookData.categories.map(cat => cat.value),
-            publisher_id: bookData.publisher ? bookData.publisher.value : null,
-            supplier_id: bookData.supplier ? bookData.supplier.value : null,
-        };
-        delete dataToSubmit.categories;
-        delete dataToSubmit.publisher;
-        delete dataToSubmit.supplier;
-        onSubmit(dataToSubmit);
-    };
-
-    useEffect(() => {
-        const currentPreview = bookData.imagePreview;
-        return () => {
-            if (currentPreview) {
-                URL.revokeObjectURL(currentPreview);
+    const uploadProps = {
+        beforeUpload: (file) => {
+            const isImage = file.type.startsWith('image/');
+            if (!isImage) {
+                message.error('Vui lòng chọn file hình ảnh!');
+                return false;
             }
-        };
-    }, [bookData.imagePreview]);
+            const isLt5M = file.size / 1024 / 1024 < 5;
+            if (!isLt5M) {
+                message.error('Kích thước hình ảnh phải nhỏ hơn 5MB!');
+                return false;
+            }
+            return false; // Return false to prevent auto upload
+        },
+        onChange: handleImageChange,
+        showUploadList: false
+    };
 
-    return isOpen ? (
-        <div className={styles.modalOverlay}>
-            <div className={styles.modalContent}>
-                <h2>{mode === 'add' ? 'Thêm Sách Mới' : 'Chỉnh Sửa Sách'}</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="title">Tên sách (*):</label>
-                            <input type="text" id="title" name="title" value={bookData.title || ''} onChange={handleChange} required />
+    return (
+        <Modal
+            title={mode === 'create' ? 'Thêm Sách Mới' : 'Cập Nhật Sách'}
+            open={isOpen}
+            onCancel={onClose}
+            footer={null}
+            width={800}
+            destroyOnClose
+            className={styles.bookModal}
+        >
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleSubmit}
+                initialValues={bookData}
+                className={styles.form}
+            >
+                <Form.Item
+                    name="title"
+                    label="Tên Sách"
+                    rules={[{ required: true, message: 'Vui lòng nhập tên sách!' }]}
+                >
+                    <Input placeholder="Nhập tên sách" disabled={isLoading} />
+                </Form.Item>
+
+                <Form.Item
+                    name="author"
+                    label="Tác Giả"
+                    rules={[{ required: true, message: 'Vui lòng nhập tên tác giả!' }]}
+                >
+                    <Input placeholder="Nhập tên tác giả" disabled={isLoading} />
+                </Form.Item>
+
+                <Form.Item
+                    name="categories"
+                    label="Danh Mục"
+                    rules={[{ required: true, message: 'Vui lòng chọn ít nhất một danh mục!' }]}
+                >
+                    <Select
+                        mode="multiple"
+                        placeholder="Chọn danh mục"
+                        options={sampleCategories}
+                        disabled={isLoading}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="publisher"
+                    label="Nhà Xuất Bản"
+                >
+                    <Select
+                        placeholder="Chọn nhà xuất bản"
+                        options={samplePublishers}
+                        disabled={isLoading}
+                        allowClear
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="supplier"
+                    label="Nhà Cung Cấp"
+                >
+                    <Select
+                        placeholder="Chọn nhà cung cấp"
+                        options={sampleSuppliers}
+                        disabled={isLoading}
+                        allowClear
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="price"
+                    label="Giá"
+                    rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}
+                >
+                    <InputNumber
+                        min={0}
+                        placeholder="Nhập giá"
+                        style={{ width: '100%' }}
+                        disabled={isLoading}
+                        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="stock_quantity"
+                    label="Số Lượng"
+                    rules={[{ required: true, message: 'Vui lòng nhập số lượng!' }]}
+                >
+                    <InputNumber
+                        min={0}
+                        placeholder="Nhập số lượng"
+                        style={{ width: '100%' }}
+                        disabled={isLoading}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="description"
+                    label="Mô Tả"
+                >
+                    <TextArea
+                        rows={4}
+                        placeholder="Nhập mô tả sách"
+                        disabled={isLoading}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    label="Hình Ảnh"
+                    className={styles.uploadContainer}
+                >
+                    <Upload {...uploadProps}>
+                        <Button icon={<UploadOutlined />} disabled={isLoading}>
+                            Chọn Hình Ảnh
+                        </Button>
+                    </Upload>
+                    {bookData?.imagePreview && (
+                        <div className={styles.imagePreview}>
+                            <img src={bookData.imagePreview} alt="Preview" />
                         </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="author">Tác giả (*):</label>
-                            <input type="text" id="author" name="author" value={bookData.author || ''} onChange={handleChange} required />
-                        </div>
-                    </div>
+                    )}
+                </Form.Item>
 
-                    <div className={styles.formGroup}>
-                        <label htmlFor="categories">Danh mục sách (*):</label>
-                        <Select 
-                            id="categories"
-                            isMulti
-                            options={sampleCategories} 
-                            value={bookData.categories}
-                            onChange={handleCategoryChange}
-                            placeholder="Chọn danh mục..."
-                            className="react-select-container"
-                            classNamePrefix="react-select"
-                        />
-                    </div>
-                    <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="publisher">Nhà xuất bản:</label>
-                             <Select 
-                                id="publisher"
-                                options={samplePublishers} 
-                                value={bookData.publisher}
-                                onChange={handlePublisherChange}
-                                placeholder="Chọn nhà xuất bản..."
-                                isClearable
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="supplier">Nhà cung cấp:</label>
-                            <Select 
-                                id="supplier"
-                                options={sampleSuppliers} 
-                                value={bookData.supplier}
-                                onChange={handleSupplierChange}
-                                placeholder="Chọn nhà cung cấp..."
-                                isClearable
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                            />
-                        </div>
-                    </div>
-
-                    <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="price">Giá (VNĐ) (*):</label>
-                            <input type="number" id="price" name="price" value={bookData.price || '0'} onChange={handleChange} required min="0" />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="stock_quantity">Số lượng tồn (*):</label>
-                            <input type="number" id="stock_quantity" name="stock_quantity" value={bookData.stock_quantity || '0'} onChange={handleChange} required min="0" />
-                        </div>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label htmlFor="image">Hình ảnh bìa:</label>
-                        <input type="file" id="image" name="image" accept="image/*" onChange={handleFileChange} />
-                        {bookData.imagePreview && (
-                            <img src={bookData.imagePreview} alt="Xem trước bìa sách" className={styles.imagePreviewModal} />
-                        )}
-                    </div>
-
-                     <div className={styles.formGroup}>
-                        <label htmlFor="description">Mô tả sách:</label>
-                        <textarea id="description" name="description" value={bookData.description || ''} onChange={handleChange} rows="4" />
-                    </div>
-
-                    <div className={styles.modalActions}>
-                        <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`}>
-                            {mode === 'add' ? 'Thêm Sách' : 'Lưu Thay Đổi'}
-                        </button>
-                        <button type="button" onClick={onClose} className={`${styles.btn} ${styles.btnSecondary}`}>Hủy</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    ) : null;
-};
-
-BookModal.defaultProps = {
-    sampleCategories: [],
-    samplePublishers: [],
-    sampleSuppliers: []
+                <Form.Item className={styles.formActions}>
+                    <Button onClick={onClose} disabled={isLoading}>
+                        Hủy
+                    </Button>
+                    <Button type="primary" htmlType="submit" loading={isLoading}>
+                        {mode === 'create' ? 'Thêm Sách' : 'Cập Nhật'}
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Modal>
+    );
 };
 
 export default BookModal;

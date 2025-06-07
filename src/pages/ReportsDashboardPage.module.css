@@ -1,0 +1,35 @@
+.report-dashboard {
+    margin: -24px;
+}
+
+.report-dashboard :global(.ant-tabs-nav) {
+    margin-bottom: 16px;
+}
+
+.report-dashboard :global(.ant-card-head) {
+    border-bottom: none;
+}
+
+.report-dashboard :global(.ant-tabs-tab) {
+    padding: 12px 24px;
+    font-size: 14px;
+}
+
+.report-dashboard :global(.ant-tabs-tab-active) {
+    font-weight: 500;
+}
+
+.report-dashboard :global(.ant-card-body) {
+    padding: 0 24px 24px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .report-dashboard :global(.ant-tabs-tab) {
+        padding: 8px 16px;
+    }
+    
+    .report-dashboard :global(.ant-card-body) {
+        padding: 0 16px 16px;
+    }
+} 

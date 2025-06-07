@@ -1,57 +1,198 @@
 // src/App.js
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import BookManagementPage from './pages/BookManagementPage';
-import AttributeManagementPage from './pages/AttributeManagementPage';
-import CustomerManagementPage from './pages/CustomerManagementPage';
-import OrderManagementPage from './pages/OrderManagementPage';
-import StationeryManagementPage from './pages/StationeryManagementPage';
-import GeneralImportOrderPage from './pages/GeneralImportOrderPage';
-import EmployeeManagementPage from './pages/EmployeeManagementPage';
-import ReportsPage from './pages/ReportsPage';
-import Layout from './components/Layout/Layout'; // Import Layout
-import './App.css';
+import React from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useLocation,
+  useParams,
+} from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import BookManagementPage from "./pages/BookManagementPage";
+import AttributeManagementPage from "./pages/AttributeManagementPage";
+import CustomerManagementPage from "./pages/CustomerManagementPage";
+import OrderManagementPage from "./pages/OrderManagementPage";
+import StationeryManagementPage from "./pages/StationeryManagementPage";
+import GeneralImportOrderPage from "./pages/GeneralImportOrderPage";
+import EmployeeManagementPage from "./pages/EmployeeManagementPage";
+import ReportsPage from "./pages/ReportsPage";
+import StoreLayout from "./components/Layout/Layout"; // Rename to StoreLayout
+import AdminLayout from "./components/Layout/AdminLayout"; // Layout RIÊNG cho admin
+import { useAuth } from "./contexts/AuthContext";
+import StoreManagementPage from "./pages/StoreManagementPage";
+import UserManagementPage from './pages/UserManagementPage';
+import StoreDetailPage from './pages/StoreDetailPage';
+import ProfilePage from './pages/ProfilePage';
+import StoreDashboardPage from './pages/StoreDashboardPage';
+import NotificationManagement from './pages/admin/NotificationManagement';
+import NotificationPage from './pages/NotificationPage';
+import ReportsDashboardPage from "./pages/ReportsDashboardPage";
+import "./App.css";
 
-// Placeholder cho các trang khác nếu cần
-const QuanLyDonHangPage = () => <div><h1>Trang Quản Lý Đơn Hàng</h1><p>Nội dung đang được xây dựng...</p></div>;
-const BaoCaoPage = () => <div><h1>Trang Báo Cáo</h1><p>Nội dung đang được xây dựng...</p></div>;
+// ProtectedRoute kiểm tra đăng nhập và vai trò
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { isAuthenticated, currentUser, isLoadingAuth } = useAuth();
 
+  if (isLoadingAuth) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  // Admin có thể truy cập mọi route
+  if (currentUser.role === 'admin') {
+    return children;
+  }
+
+  // Với các role khác, kiểm tra quyền truy cập
+  if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
+    return <Navigate to="/unauthorized" />;
+  }
+
+  return children;
+};
+
+// PublicRoute cho trang đăng nhập
+const PublicRoute = () => {
+  const { currentUser, token, isLoadingAuth } = useAuth();
+  const location = useLocation();
+
+  if (isLoadingAuth) {
+    return <div className="loading-app">Đang tải ứng dụng...</div>;
+  }
+
+  if (currentUser && token) {
+    // Chuyển hướng dựa trên vai trò
+    const defaultPath = currentUser.role === 'admin' 
+      ? '/admin/dashboard' 
+      : `/store/${currentUser.storeId}/dashboard`;
+    return <Navigate to={defaultPath} replace />;
+  }
+
+  return <Outlet />;
+};
+
+// FallbackNavigate cho các route không tồn tại
+const FallbackNavigate = () => {
+  const { currentUser, token, isLoadingAuth } = useAuth();
+  if (isLoadingAuth) return <div className="loading-app">Đang tải...</div>;
+
+  if (currentUser && token) {
+    const defaultPath = currentUser.role === 'admin' 
+      ? '/admin/dashboard' 
+      : `/store/${currentUser.storeId}/dashboard`;
+    return <Navigate to={defaultPath} replace />;
+  }
+  return <Navigate to="/login" replace />;
+};
+
+// Admin Routes Component
+const AdminRoutes = () => {
+  return (
+    <AdminLayout>
+      <Routes>
+        <Route path="/dashboard" element={<AdminDashboardPage />} />
+        <Route path="/stores" element={<StoreManagementPage />} />
+        <Route path="/stores/:storeId" element={<StoreDetailPage />} />
+        <Route path="/users" element={<UserManagementPage />} />
+        <Route path="/customers" element={<CustomerManagementPage />} />
+        <Route path="/books" element={<BookManagementPage />} />
+        <Route path="/orders" element={<OrderManagementPage />} />
+        <Route path="/general-import" element={<GeneralImportOrderPage />} />
+        <Route path="/reports" element={<ReportsDashboardPage />} />
+        <Route path="/settings" element={<div>Cài Đặt Hệ Thống</div>} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/notifications" element={<NotificationManagement />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+      </Routes>
+    </AdminLayout>
+  );
+};
+
+// Store Routes Component
+const StoreRoutes = () => {
+  const { storeId } = useParams();
+  
+  return (
+    <StoreLayout>
+      <Routes>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<StoreDashboardPage />} />
+        
+        {/* Manager Only Routes */}
+        <Route path="quan-ly-nhan-vien" element={
+          <ProtectedRoute allowedRoles={['manager']}>
+            <EmployeeManagementPage />
+          </ProtectedRoute>
+        } />
+        <Route path="bao-cao" element={
+          <ProtectedRoute allowedRoles={['manager']}>
+            <ReportsDashboardPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Profile Route */}
+        <Route path="profile" element={<ProfilePage />} />
+
+        {/* Notifications Route */}
+        <Route path="notifications" element={<NotificationPage />} />
+
+        {/* Shared Routes for Manager & Staff */}
+        <Route path="quan-ly-sach" element={<BookManagementPage />} />
+        <Route path="quan-ly-van-phong-pham" element={<StationeryManagementPage />} />
+        <Route path="quan-ly-attribute" element={<AttributeManagementPage />} />
+        <Route path="quan-ly-khach-hang" element={<CustomerManagementPage />} />
+        <Route path="quan-ly-don-hang" element={<OrderManagementPage />} />
+        <Route path="quan-ly-nhap-hang" element={<GeneralImportOrderPage />} />
+        
+        {/* Fallback route for store */}
+        <Route path="*" element={<Navigate to={`/store/${storeId}/dashboard`} replace />} />
+      </Routes>
+    </StoreLayout>
+  );
+};
 
 function App() {
-  // Giả sử bạn có một cách để kiểm tra người dùng đã đăng nhập hay chưa
-  // const isAuthenticated = !!localStorage.getItem('userToken'); // Ví dụ đơn giản
-  const isAuthenticated = true; // Tạm thời cho phép truy cập để test layout
-
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Route cho trang đăng nhập, không dùng Layout có Sidebar */}
-        <Route path="/dang-nhap" element={<LoginPage />} />
+    <Routes>
+      {/* Public Routes */}
+      <Route element={<PublicRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+      </Route>
 
-        {/* Routes sử dụng Layout có Sidebar */}
-        {/* Nếu chưa đăng nhập, có thể chuyển hướng về /dang-nhap */}
-        <Route
-          path="/"
-          element={isAuthenticated ? <Layout /> : <Navigate to="/dang-nhap" replace />}
-        >
-          {/* Trang mặc định khi vào / (sau khi đăng nhập) */}
-          <Route index element={<Navigate to="/quan-ly-sach" replace />} />
-          <Route path="quan-ly-sach" element={<BookManagementPage />} />
-          <Route path="quan-ly-attribute" element={<AttributeManagementPage />} />
-          <Route path="quan-ly-khach-hang" element={<CustomerManagementPage />} />
-          <Route path="quan-ly-don-hang" element={<OrderManagementPage />} />
-          <Route path="quan-ly-van-phong-pham" element={<StationeryManagementPage />} />
-          <Route path="quan-ly-nhap-hang" element={<GeneralImportOrderPage />} />
-          <Route path="quan-ly-nhan-vien" element={<EmployeeManagementPage />} />
-          <Route path="bao-cao" element={<ReportsPage/>} />
-          {/* Thêm các route con khác sử dụng Layout ở đây */}
-        </Route>
+      {/* Admin Routes */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminRoutes />
+          </ProtectedRoute>
+        }
+      />
 
-        {/* Route bắt các đường dẫn không hợp lệ */}
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/quan-ly-sach" : "/dang-nhap"} replace />} />
-      </Routes>
-    </BrowserRouter>
+      {/* Store Routes (Manager & Staff) */}
+      <Route
+        path="/store/:storeId/*"
+        element={
+          <ProtectedRoute allowedRoles={['manager', 'staff', 'admin']}>
+            <StoreRoutes />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Other Routes */}
+      <Route path="/unauthorized" element={
+        <div style={{textAlign: 'center', marginTop: '50px'}}>
+          <h1>403 - Không Có Quyền Truy Cập</h1>
+          <p>Bạn không được phép xem trang này.</p>
+        </div>
+      } />
+      <Route path="*" element={<FallbackNavigate />} />
+    </Routes>
   );
 }
 

@@ -1,0 +1,164 @@
+/* src/components/Books/BookTable.module.css */
+.tableContainer {
+    overflow-x: auto; /* Cho phép cuộn ngang trên màn hình nhỏ */
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px; /* Bo tròn góc cho container */
+    background-color: #fff; /* Nền trắng cho bảng */
+}
+
+.bookTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.bookTable th, .bookTable td {
+    border-bottom: 1px solid #e9ecef; /* Đường kẻ ngang nhẹ nhàng hơn */
+    padding: 12px 15px; /* Tăng padding cho dễ nhìn */
+    text-align: left;
+    vertical-align: middle; /* Căn giữa theo chiều dọc */
+    white-space: nowrap; /* Ngăn text xuống dòng đột ngột */
+}
+
+.bookTable th {
+    background-color: #f8f9fa; /* Màu nền header sáng */
+    font-weight: 600;
+    color: #495057; /* Màu chữ header */
+    text-transform: uppercase; /* Viết hoa tiêu đề cột */
+    font-size: 0.8rem; /* Font chữ header nhỏ hơn một chút */
+    border-top: none; /* Bỏ border trên cùng của header */
+}
+/* Đường kẻ dọc cho header (tùy chọn) */
+.bookTable th:not(:last-child) {
+    border-right: 1px solid #e9ecef;
+}
+
+
+.bookTable tbody tr:nth-child(even) {
+    background-color: #fdfdfd; /* Màu nền xen kẽ nhẹ */
+}
+
+.bookTable tbody tr:hover {
+    background-color: #e9f5ff; /* Màu hover rõ ràng hơn */
+}
+
+.bookImage {
+    width: 45px; /* Kích thước ảnh nhỏ hơn */
+    height: 65px; /* Giữ tỷ lệ */
+    object-fit: cover;
+    border-radius: 4px; /* Bo tròn ảnh */
+    border: 1px solid #eee;
+    vertical-align: middle; /* Để ảnh căn giữa với text trong cell */
+}
+
+.bookTitle {
+    font-weight: 500;
+    color: #007bff; /* Màu link cho tên sách */
+    cursor: pointer;
+    max-width: 250px; /* Giới hạn chiều rộng và cho phép ellipsis */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bookTitle:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.priceCell {
+    font-weight: 500;
+    text-align: right;
+    color: #28a745; /* Màu xanh cho giá */
+}
+.stockCell {
+    text-align: center; /* Căn giữa số lượng tồn */
+}
+
+.actionsCell {
+    text-align: center;
+    white-space: nowrap; /* Giữ các nút trên một hàng */
+}
+
+.btnAction {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 8px; /* Tăng padding cho dễ click */
+    margin: 0 4px; /* Khoảng cách giữa các nút */
+    border-radius: 50%; /* Nút tròn */
+    color: #555;
+    transition: background-color 0.2s, color 0.2s;
+    width: 36px; /* Kích thước cố định cho nút tròn */
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btnAction:hover {
+    background-color: #f0f0f0;
+}
+
+.btnView { color: #17a2b8; /* Info blue */ }
+.btnView:hover { background-color: #d1ecf1; color: #0c5460;}
+
+.btnEdit { color: #ffc107; /* Warning yellow */ }
+.btnEdit:hover { background-color: #fff3cd; color: #856404;}
+
+.btnDelete { color: #dc3545; /* Danger red */ }
+.btnDelete:hover { background-color: #f8d7da; color: #721c24;}
+
+.noResults {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Responsive data-label (giữ nguyên hoặc điều chỉnh nếu cần) */
+@media (max-width: 1200px) { /* Điều chỉnh breakpoint cho phù hợp hơn */
+    .bookTable thead {
+        display: none;
+    }
+    .bookTable tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .bookTable td {
+        display: block;
+        text-align: right;
+        padding: 10px 15px; /* Đồng nhất padding */
+        padding-left: 45%; /* Tăng không gian cho label */
+        position: relative;
+        border-bottom: 1px dotted #e9ecef; /* Border dotted giữa các "hàng" data */
+        white-space: normal; /* Cho phép text xuống dòng */
+    }
+    .bookTable td:last-child {
+        border-bottom: none;
+    }
+    .bookTable td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px; /* Điều chỉnh vị trí label */
+        width: calc(45% - 25px); /* Điều chỉnh chiều rộng label */
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #495057;
+    }
+    .bookTable .actionsCell {
+        text-align: center; /* Giữ các nút ở giữa */
+        padding-top: 15px;
+    }
+    .bookTable .bookImage { /* Ảnh có thể căn giữa trên mobile */
+        display: block;
+        margin-left: auto; /* Để căn phải theo giá trị */
+        margin-right: 0;
+    }
+}

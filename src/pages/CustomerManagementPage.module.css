@@ -1,9 +1,116 @@
-/* src/pages/AttributeManagementPage.module.css */
+/* src/pages/CustomerManagementPage.module.css */
 .pageContainer {
     padding: 20px;
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    min-height: 100vh;
+}
+
+.statsRow {
+    margin-bottom: 24px;
+}
+
+.tableHeader {
+    margin-bottom: 16px;
+}
+
+.loadingOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loader {
+    border: 4px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 4px solid #1890ff;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.errorBanner {
+    padding: 12px;
+    background-color: #fff1f0;
+    border: 1px solid #ffccc7;
+    border-radius: 4px;
+    color: #cf1322;
+    margin-bottom: 16px;
+}
+
+.noResultsContainer {
+    text-align: center;
+    padding: 24px;
+}
+
+.noResults {
+    color: #8c8c8c;
+    font-size: 16px;
+}
+
+.imageContainer {
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.customerImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.customerTitle {
+    color: #1890ff;
+    cursor: pointer;
+}
+
+.customerTitle:hover {
+    text-decoration: underline;
+}
+
+.btnAction {
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.btnView {
+    color: #1890ff;
+}
+
+.btnEdit {
+    color: #52c41a;
+}
+
+.btnDelete {
+    color: #ff4d4f;
+}
+
+.btnAction:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.actionsCell {
+    white-space: nowrap;
+}
+
+.filterActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
 }
 
 .pageHeader {

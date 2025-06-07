@@ -12,6 +12,7 @@ import Select from 'react-select'; // Để cập nhật trạng thái
 
 const ImportOrderDetailsModal = ({ isOpen, onClose, importOrder, onUpdateStatus, importOrderStatusOptions = [] }) => {
    
+console.log(importOrder);
 
     const getStatusLabel = (statusValue) => {
         return importOrderStatusOptions.find(opt => opt.value === statusValue)?.label || statusValue;
@@ -54,10 +55,10 @@ const ImportOrderDetailsModal = ({ isOpen, onClose, importOrder, onUpdateStatus,
                 <div className={styles.detailsGridContainer}>
                     <div className={styles.detailSection}>
                         <h4>Thông Tin Chung</h4>
-                        <div className={styles.detailItem}><strong>Nhà cung cấp:</strong> <span>{importOrder.supplier_name || importOrder.supplier_id}</span></div>
+                        <div className={styles.detailItem}><strong>Nhà cung cấp:</strong> <span>{importOrder.supplier_id.name || importOrder.supplier_id}</span></div>
                         <div className={styles.detailItem}><strong>Ngày tạo đơn:</strong> <span>{new Date(importOrder.import_date || importOrder.created_at).toLocaleString('vi-VN')}</span></div>
                         <div className={styles.detailItem}><strong>Ngày dự kiến nhận:</strong> <span>{importOrder.expected_delivery_date ? new Date(importOrder.expected_delivery_date).toLocaleDateString('vi-VN') : 'N/A'}</span></div>
-                        <div className={styles.detailItem}><strong>Người tạo:</strong> <span>{importOrder.created_by || 'N/A'}</span></div>
+                        <div className={styles.detailItem}><strong>Người tạo:</strong> <span>{importOrder.created_by.full_name || 'N/A'}</span></div>
                         <div className={styles.detailItem}>
                             <strong>Trạng thái:</strong>
                             {onUpdateStatus && importOrder.status !== 'completed' && importOrder.status !== 'cancelled' ? (
@@ -68,7 +69,7 @@ const ImportOrderDetailsModal = ({ isOpen, onClose, importOrder, onUpdateStatus,
                                     className={`${styles.statusSelectInline} react-select-container-details`} // Thêm class để style riêng
                                     classNamePrefix="react-select-details"
                                     menuPlacement="auto"
-                                    styles={{ /* ... styles cho select nhỏ gọn ... */
+                                    styles={{ 
                                         control: (base) => ({ ...base, minHeight: '28px', height: '28px', fontSize: '0.85rem', width: '180px' }),
                                         valueContainer: (base) => ({ ...base, height: '28px', padding: '0 6px' }),
                                         input: (base) => ({ ...base, margin: '0px', padding: '0px'}),
@@ -114,12 +115,18 @@ const ImportOrderDetailsModal = ({ isOpen, onClose, importOrder, onUpdateStatus,
                                 <tbody>
                                     {importOrder.items.map((item, index) => (
                                         <tr key={item.product_id + '-' + index}>
-                                            <td>{item.product_id}</td>
-                                            <td>{item.product_name || item.book_name || item.stationery_name || 'N/A'}</td>
-                                            <td className={styles.productTypeCell}>{item.product_type === 'book' ? 'Sách' : (item.product_type === 'stationery' ? 'VPP' : 'Khác')}</td>
+                                            <td>{item.product?._id}</td>
+                                            <td>
+                                                {item.productType === 'Book' 
+                                                    ? item.product?.title 
+                                                    : item.product?.name || 'N/A'}
+                                            </td>
+                                            <td className={styles.productTypeCell}>
+                                                {item.productType === 'Book' ? 'Sách' : 'Văn phòng phẩm'}
+                                            </td>
                                             <td className={styles.numberCell}>{item.quantity}</td>
-                                            <td className={styles.numberCell}>{item.unit_price?.toLocaleString('vi-VN')}</td>
-                                            <td className={styles.numberCell}>{(item.quantity * item.unit_price)?.toLocaleString('vi-VN')}</td>
+                                            <td className={styles.numberCell}>{item.price?.toLocaleString('vi-VN')} VNĐ</td>
+                                            <td className={styles.numberCell}>{item.total?.toLocaleString('vi-VN')} VNĐ</td>
                                         </tr>
                                     ))}
                                 </tbody>

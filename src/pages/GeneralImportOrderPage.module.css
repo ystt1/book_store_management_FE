@@ -1,28 +1,348 @@
+.container {
+    padding: 24px;
+}
+
+.statsRow {
+    margin-bottom: 24px;
+}
+
+.statsRow :global(.ant-card) {
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.statsRow :global(.ant-card:hover) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.statsRow :global(.ant-statistic-title) {
+    font-size: 14px;
+    color: #8c8c8c;
+    margin-bottom: 8px;
+}
+
+.statsRow :global(.ant-statistic-content) {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.statsRow :global(.ant-statistic-content-prefix) {
+    margin-right: 8px;
+}
+
+.tableHeader {
+    margin-bottom: 16px;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.filterActions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    height: 100%;
+}
+
+.tableSection {
+    margin-top: 16px;
+}
+
+.table {
+    background: white;
+    border-radius: 8px;
+}
+
+.table :global(.ant-table-thead > tr > th) {
+    background: #fafafa;
+    font-weight: 600;
+}
+
+.table :global(.ant-table-tbody > tr:hover > td) {
+    background: #f5f5f5;
+}
+
+/* Status Select Styles */
+.statusSelect {
+    min-width: 140px;
+}
+
+.statusSelect :global(.ant-select-selector) {
+    border-radius: 4px !important;
+}
+
+.statusSelect :global(.ant-select-selection-item) {
+    font-weight: 500;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .filterActions {
+        justify-content: flex-start;
+    }
+}
+
+/* Import Order Details Styles */
+.orderDetails {
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+}
+
+.detailsHeader {
+    margin-bottom: 16px;
+}
+
+.detailsHeader h4 {
+    margin: 0;
+    color: #1890ff;
+}
+
+.detailsTable {
+    margin-top: 8px;
+}
+
+.detailsTable :global(.ant-table-thead > tr > th) {
+    background: #f0f0f0;
+}
+
+.totalLabel {
+    text-align: right !important;
+    font-weight: 600;
+}
+
+.totalAmount {
+    text-align: right !important;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+/* Modal Styles */
+:global(.ant-modal-content) {
+    border-radius: 8px;
+}
+
+:global(.ant-modal-header) {
+    border-radius: 8px 8px 0 0;
+}
+
+:global(.ant-form-item-label > label) {
+    font-weight: 500;
+}
+
+/* Loading Styles */
+.loadingOverlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.loader {
+    border: 3px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 3px solid #1890ff;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Banner */
+.errorBanner {
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #fff2f0;
+    border: 1px solid #ffccc7;
+    border-radius: 4px;
+    color: #ff4d4f;
+}
+
+/* Range Picker */
+.rangePicker {
+    width: 100%;
+}
+
+/* Button Styles */
+:global(.ant-btn) {
+    border-radius: 6px;
+}
+
+:global(.ant-btn-primary) {
+    background: #1890ff;
+}
+
+:global(.ant-btn-primary:hover) {
+    background: #40a9ff;
+}
+
+/* Table Row Expansion */
+.table :global(.ant-table-expanded-row) {
+    background: #fafafa;
+}
+
+.table :global(.ant-table-expanded-row > td) {
+    padding: 0 !important;
+}
+
+/* Status Colors */
+.statusPending {
+    color: #faad14;
+}
+
+.statusApproved {
+    color: #52c41a;
+}
+
+.statusCompleted {
+    color: #1890ff;
+}
+
+.statusCancelled {
+    color: #ff4d4f;
+}
+
 .advancedFilterBar .filterGrid {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Điều chỉnh cho filter đơn hàng */
 }
 
 /* src/pages/AttributeManagementPage.module.css */
 .pageContainer {
-    padding: 20px;
-    background-color: #fff;
+    padding: 24px;
+    background: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .pageHeader {
+    margin-bottom: 24px;
+}
+
+.titleSection {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px; /* Giảm margin */
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 24px;
 }
 
-.pageHeader h1 {
+.titleSection h1 {
     margin: 0;
-    font-size: 1.8rem;
-    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.addButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filterSection {
+    background: #f9fafb;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.searchBar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.filterButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.advancedFilters {
+    background: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-top: 16px;
+}
+
+.resetButton {
+    margin-top: 24px;
+    width: 100%;
+}
+
+.loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #1890ff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+.errorBanner {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .pageContainer {
+        padding: 16px;
+    }
+
+    .titleSection {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .searchBar {
+        flex-direction: column;
+    }
+
+    .searchInput {
+        max-width: 100%;
+    }
+
+    .filterButton {
+        width: 100%;
+    }
 }
 
 .btn { /* Nút chung */
@@ -129,21 +449,11 @@
     font-size: 0.9rem;
 }
 
-.searchInput {
-    padding: 9px 12px 9px 30px; /* Điều chỉnh padding */
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    min-width: 250px; /* Độ rộng tối thiểu cho ô tìm kiếm */
-}
 .searchInput:focus {
     outline: none;
     border-color: #80bdff;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
-
-
-
 
 .btnToggleFilter {
     padding: 10px 15px;
@@ -165,7 +475,6 @@
     transition: transform 0.3s ease;
 }
 /* Không cần xoay icon nữa nếu text nút thay đổi */
-
 
 .advancedFilterBar {
     background-color: #fdfdff; /* Màu nền hơi khác một chút */
@@ -195,7 +504,6 @@
     padding-bottom: 10px;
     border-bottom: 1px solid #e0e0e0;
 }
-
 
 .filterGrid {
     display: grid;
@@ -246,4 +554,156 @@
     align-items: center;
     gap: 15px;
     margin-bottom: 20px;
+}
+
+/* Expanded Row Styles */
+.expandedRow {
+    padding: 16px;
+    background: #fafafa;
+}
+
+.detailsCard {
+    background: white;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.detailItem {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: baseline;
+}
+
+.detailLabel {
+    color: #8c8c8c;
+    margin-right: 8px;
+    min-width: 100px;
+    font-size: 0.9em;
+}
+
+.productMeta {
+    color: #8c8c8c;
+    font-size: 0.85em;
+    margin-top: 4px;
+}
+
+.detailsTable {
+    background: white;
+    margin-top: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.detailsTable :global(.ant-table-thead > tr > th) {
+    background: #fafafa;
+    font-weight: 600;
+}
+
+.summaryLabel {
+    color: #8c8c8c;
+    text-align: right !important;
+}
+
+.totalRow {
+    background: #f8f9fa;
+}
+
+.totalLabel {
+    color: #262626;
+    font-weight: 600;
+    text-align: right !important;
+}
+
+.totalAmount {
+    color: #1890ff;
+    font-weight: 600;
+}
+
+.orderIdCell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #1890ff;
+    transition: color 0.3s;
+}
+
+.orderIdCell:hover {
+    color: #40a9ff;
+}
+
+.timePart {
+    color: #8c8c8c;
+    font-size: 0.9em;
+}
+
+/* Items List Preview Styles */
+.itemsList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.itemsCount {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.itemsQuantity {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+.itemsLabel {
+    color: #8c8c8c;
+}
+
+.itemsTypes {
+    color: #8c8c8c;
+    font-size: 0.9em;
+}
+
+.itemsPreview {
+    color: #595959;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+.filterSelect,
+.filterDatePicker {
+    width: 100% !important;
+}
+
+.filterSelect .ant-select-selector,
+.filterDatePicker .ant-picker {
+    height: 32px !important;
+    align-items: center !important;
+}
+
+/* Đảm bảo các Form.Item có chiều cao bằng nhau */
+:global(.ant-form-item) {
+    margin-bottom: 0 !important;
+    height: 100% !important;
+}
+
+/* Căn chỉnh label của Form.Item */
+:global(.ant-form-item-label) {
+    padding-bottom: 8px !important;
+}
+
+/* Đảm bảo các input number trong Space.Compact có chiều cao đồng nhất */
+:global(.ant-input-number) {
+    height: 32px !important;
+}
+
+/* Căn chỉnh nút reset filter */
+.filterActions {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 24px;
 }

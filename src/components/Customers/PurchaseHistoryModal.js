@@ -1,57 +1,130 @@
 // src/components/Customers/PurchaseHistoryModal.js
 import React from 'react';
+import { Modal, Table, Tag } from 'antd';
 import styles from './PurchaseHistoryModal.module.css';
 
-const PurchaseHistoryModal = ({ isOpen, onClose, customerName, history }) => {
-    if (!isOpen) return null;
+const PurchaseHistoryModal = ({ isOpen, onClose, customerName, history, currentPage, totalPages, onPageChange }) => {
+    const columns = [
+        {
+            title: 'Ngày đặt',
+            dataIndex: 'date',
+            key: 'date',
+            render: (date) => new Date(date).toLocaleDateString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        },
+        {
+            title: 'Sản phẩm',
+            dataIndex: 'products',
+            key: 'products',
+            width: '30%'
+        },
+        {
+            title: 'Tổng tiền',
+            dataIndex: 'total_amount',
+            key: 'total_amount',
+            align: 'right',
+            render: (amount) => `${amount?.toLocaleString('vi-VN')} VNĐ`
+        },
+        {
+            title: 'Trạng thái đơn hàng',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status) => {
+                let color = 'blue';
+                let text = status;
+                switch (status) {
+                    case 'completed':
+                        color = 'green';
+                        text = 'Hoàn thành';
+                        break;
+                    case 'processing':
+                        color = 'blue';
+                        text = 'Đang xử lý';
+                        break;
+                    case 'cancelled':
+                        color = 'red';
+                        text = 'Đã hủy';
+                        break;
+                    default:
+                        color = 'default';
+                }
+                return <Tag color={color}>{text}</Tag>;
+            }
+        },
+        {
+            title: 'Trạng thái thanh toán',
+            dataIndex: 'payment_status',
+            key: 'payment_status',
+            render: (status) => {
+                let color = 'blue';
+                let text = status;
+                switch (status) {
+                    case 'paid':
+                        color = 'green';
+                        text = 'Đã thanh toán';
+                        break;
+                    case 'pending':
+                        color = 'orange';
+                        text = 'Chờ thanh toán';
+                        break;
+                    case 'refunded':
+                        color = 'red';
+                        text = 'Đã hoàn tiền';
+                        break;
+                    default:
+                        color = 'default';
+                }
+                return <Tag color={color}>{text}</Tag>;
+            }
+        },
+        {
+            title: 'Phương thức thanh toán',
+            dataIndex: 'payment_method',
+            key: 'payment_method',
+            render: (method) => {
+                let text = method;
+                switch (method) {
+                    case 'cash':
+                        text = 'Tiền mặt';
+                        break;
+                    case 'bank_transfer':
+                        text = 'Chuyển khoản';
+                        break;
+                    case 'momo':
+                        text = 'Ví MoMo';
+                        break;
+                    default:
+                        text = method;
+                }
+                return text;
+            }
+        }
+    ];
 
     return (
-        <div className={styles.overlay}>
-            <div className={styles.modal}>
-                <button onClick={onClose} className={styles.closeButton}>×</button>
-                <h3 className={styles.title}>Lịch sử mua hàng của {customerName}</h3>
-                {history && history.length > 0 ? (
-                    <div className={styles.historyTableContainer}>
-                        <table className={styles.historyTable}>
-                            <thead>
-                                <tr>
-                                    <th>Mã ĐH</th>
-                                    <th>Ngày Mua</th>
-                                    <th>Sản phẩm</th> {/* Có thể chi tiết hơn */}
-                                    <th>Số lượng</th>
-                                    <th>Đơn giá</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {history.map(order => (
-                                    <tr key={order.id}>
-                                        <td>{order.id}</td>
-                                        <td>{new Date(order.order_date).toLocaleDateString('vi-VN')}</td>
-                                        <td>
-                                            {/* Giả sử order.items là mảng các sản phẩm trong đơn */}
-                                            {order.items?.map(item => item.name).join(', ') || 'N/A'}
-                                        </td>
-                                        <td className={styles.centerText}>{order.total_quantity || order.items?.reduce((sum, i) => sum + i.quantity, 0) || 'N/A'}</td>
-                                        <td className={styles.rightText}>{order.unit_price_display || 'N/A'}</td>
-                                        <td className={styles.rightTextBold}>{order.total_amount?.toLocaleString('vi-VN')} VNĐ</td>
-                                        <td>{order.status || 'N/A'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <p className={styles.noHistory}>Chưa có lịch sử mua hàng.</p>
-                )}
-                <div className={styles.actions}>
-                    <button onClick={onClose} className={`${styles.btn} ${styles.btnSecondary}`}>
-                        Đóng
-                    </button>
-                </div>
-            </div>
-        </div>
+        <Modal
+            title={`Lịch sử mua hàng của ${customerName}`}
+            open={isOpen}
+            onCancel={onClose}
+            width={1000}
+            footer={null}
+        >
+            <Table
+                columns={columns}
+                dataSource={history}
+                rowKey="id"
+                pagination={{
+                    current: currentPage,
+                    total: totalPages * 10,
+                    onChange: onPageChange
+                }}
+            />
+        </Modal>
     );
 };
 

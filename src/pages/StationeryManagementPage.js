@@ -1,239 +1,429 @@
 // src/pages/StationeryManagementPage.js
-import React, { useState, useEffect, useMemo } from 'react';
-import styles from './StationeryManagementPage.module.css'; // Tạo file CSS mới
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
+import styles from './StationeryManagementPage.module.css';
 import StationeryTable from '../components/Stationery/StationeryTable';
 import StationeryModal from '../components/Stationery/StationeryModal';
 import ConfirmModal from '../components/Common/ConfirmModal';
-import Pagination from '../components/Common/Pagination';
-import Select from 'react-select'; // Nếu có filter theo NCC hoặc danh mục VPP
-import { FaPlus, FaSearch, FaFilter, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import stationeryService from '../services/stationeryService';
+import StationeryDetailModal from '../components/Stationery/StationeryDetailModal';
 
-// Dữ liệu mẫu (sau này sẽ là API calls)
-const sampleSuppliersForStationery = [ // Dùng cho form và filter
-    { value: 'S001', label: 'VPP Tổng Hợp Minh Khai' },
-    { value: 'S002', label: 'Công ty Thiên Long' },
-    { value: 'S003', label: 'Đại lý VPP Hồng Hà' },
-];
-const initialStationeryItems = [
-    { id: 'ST001', name: 'Bút bi Thiên Long TL-027', description: 'Mực xanh, đầu bi 0.5mm', price: 3500, stock_quantity: 1000, supplier_id: 'S002', supplier_name: 'Công ty Thiên Long', created_at: '2023-01-15T00:00:00Z' },
-    { id: 'ST002', name: 'Vở kẻ ngang Campus 120 trang', description: 'Định lượng giấy 70gsm', price: 12000, stock_quantity: 500, supplier_id: 'S003', supplier_name: 'Đại lý VPP Hồng Hà', created_at: '2023-02-20T00:00:00Z' },
-    { id: 'ST003', name: 'Băng keo trong Deli', description: 'Khổ 4.8cm, dài 100 yard', price: 8000, stock_quantity: 300, supplier_id: 'S001', supplier_name: 'VPP Tổng Hợp Minh Khai', created_at: '2023-03-10T00:00:00Z' },
-    // Thêm nhiều VPP
-];
+import {
+    Card, Row, Col, Statistic, Typography, Divider,
+    Input, Button, Space, Tooltip, Select, Form,
+    InputNumber, message
+} from 'antd';
+
+import {
+    PlusOutlined, SearchOutlined, FilterOutlined,
+    DollarOutlined, TagsOutlined, ContainerOutlined,
+    DownOutlined, UpOutlined
+} from '@ant-design/icons';
+
+const { Title, Text } = Typography;
+const { Search } = Input;
+const { Option } = Select;
+
+const initialStationeryForm = {
+    id: '',
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    supplier_id: null,
+    image: null,
+    imagePreview: ''
+};
+
+// Thêm debounce hook
+const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+};
 
 const StationeryManagementPage = () => {
-    const [stationeryItems, setStationeryItems] = useState(initialStationeryItems);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const { storeId } = useParams();
+    const [form] = Form.useForm();
+
+    const [stationeryItems, setStationeryItems] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
+
+    // Filters state
+    const [filters, setFilters] = useState({
+        searchTerm: searchParams.get('searchTerm') || '',
+        supplier: searchParams.get('supplier') ? {
+            value: searchParams.get('supplier'),
+            label: ''
+        } : null,
+        minStock: searchParams.get('minStock') || '',
+        sortBy: searchParams.get('sortBy') || 'created_at',
+        sortOrder: searchParams.get('sortOrder') || 'desc'
+    });
+
+    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    const debouncedFilters = useDebounce(filters, 500);
+
+    // Dropdown options
+    const [supplierOptions, setSupplierOptions] = useState([]);
+
+    // Modals state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('add');
-    const [currentStationery, setCurrentStationery] = useState(null);
-
+    const [currentStationery, setCurrentStationery] = useState(initialStationeryForm);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [itemIdToDelete, setItemIdToDelete] = useState(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedStationery, setSelectedStationery] = useState(null);
 
-    // Filter & Search
-    const [searchTerm, setSearchTerm] = useState('');
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-    const [filterSupplierSt, setFilterSupplierSt] = useState(null); // Filter theo NCC cho VPP
-    const [filterMinStockSt, setFilterMinStockSt] = useState(''); // Filter theo SL tồn
+    // Statistics state
+    const [statistics, setStatistics] = useState({
+        totalItems: 0,
+        totalValue: 0,
+        lowStock: 0
+    });
 
-    // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    // Fetch data effect
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const params = {
+                    page: currentPage,
+                    limit: pageSize,
+                    sortBy: debouncedFilters.sortBy,
+                    sortOrder: debouncedFilters.sortOrder,
+                    ...(debouncedFilters.searchTerm && { searchTerm: debouncedFilters.searchTerm }),
+                    ...(debouncedFilters.supplier?.value && { supplier: debouncedFilters.supplier.value }),
+                    ...(debouncedFilters.minStock && { minStock: debouncedFilters.minStock })
+                };
 
-    const filteredItems = useMemo(() => {
-        return stationeryItems.filter(item => {
-            const searchMatch = searchTerm === '' ||
-                item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (item.id && item.id.toLowerCase().includes(searchTerm.toLowerCase()));
-            if (!searchMatch) return false;
+                // Update URL params
+                const currentParams = new URLSearchParams();
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== '') {
+                        currentParams.set(key, value.toString());
+                    }
+                });
+                setSearchParams(currentParams, { replace: true });
 
-            const supplierMatch = !filterSupplierSt || item.supplier_id === filterSupplierSt.value;
-            const stockMatch = filterMinStockSt === '' || item.stock_quantity >= parseInt(filterMinStockSt);
+                const response = await stationeryService.getAllStationeryItems(storeId, params);
+                if (response.success && response.data) {
+                    setStationeryItems(response.data);
+                    setTotal(response.pagination.total);
+                    calculateStatistics(response.data);
+                }
+            } catch (err) {
+                console.error("Lỗi khi lấy danh sách VPP:", err);
+                message.error(err.message || 'Không thể tải danh sách văn phòng phẩm.');
+                setStationeryItems([]);
+                setTotal(0);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-            return supplierMatch && stockMatch;
-        });
-    }, [stationeryItems, searchTerm, filterSupplierSt, filterMinStockSt]);
+        fetchData();
+    }, [debouncedFilters, currentPage, pageSize, storeId, setSearchParams]);
 
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItemsOnPage = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    // Fetch dropdown data effect
+    useEffect(() => {
+        const fetchDropdownData = async () => {
+            try {
+                const suppliersData = await stationeryService.getAllSuppliersForForm(storeId);
+                if (suppliersData?.suppliers) {
+                    const formattedSuppliers = suppliersData.suppliers.map(s => ({
+                        value: s.value || s._id,
+                        label: s.label || s.name
+                    }));
+                    setSupplierOptions(formattedSuppliers);
 
-    const handlePageChange = (page) => setCurrentPage(page);
+                    // Initialize supplier filter from URL
+                    const supplierFromUrl = searchParams.get('supplier');
+                    if (supplierFromUrl) {
+                        const supplierOption = formattedSuppliers.find(s => s.value === supplierFromUrl);
+                        setFilters(prev => ({ ...prev, supplier: supplierOption }));
+                    }
+                }
+            } catch (err) {
+                console.error("Lỗi tải dữ liệu form:", err);
+                message.error("Lỗi tải dữ liệu cho bộ lọc.");
+            }
+        };
 
-    const handleOpenModal = (mode, item = null) => {
-        setModalMode(mode);
-        setCurrentStationery(item);
-        setIsModalOpen(true);
-    };
+        fetchDropdownData();
+    }, [storeId, searchParams]);
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setCurrentStationery(null);
-    };
+    // Statistics calculation
+    const calculateStatistics = useCallback((items) => {
+        const stats = {
+            totalItems: total,
+            totalValue: items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * (parseInt(item.stock) || 0), 0),
+            lowStock: items.filter(item => (parseInt(item.stock) || 0) < 10).length
+        };
+        setStatistics(stats);
+    }, [total]);
 
-    const handleSubmitStationery = (formData) => {
-        // TODO: Gọi API để thêm/sửa VPP
-        console.log("Submitting Stationery:", formData);
-        if (modalMode === 'add') {
-            const newItem = {
-                ...formData,
-                id: `ST${Date.now().toString().slice(-4)}`,
-                supplier_name: sampleSuppliersForStationery.find(s => s.value === formData.supplier_id)?.label || formData.supplier_id,
-                created_at: new Date().toISOString()
-            };
-            setStationeryItems(prev => [newItem, ...prev]);
-            alert('Thêm văn phòng phẩm thành công!');
-        } else {
-            setStationeryItems(prev => prev.map(item =>
-                item.id === formData.id ? {
-                    ...item,
-                    ...formData,
-                    supplier_name: sampleSuppliersForStationery.find(s => s.value === formData.supplier_id)?.label || formData.supplier_id,
-                } : item
-            ));
-            alert('Cập nhật văn phòng phẩm thành công!');
-        }
-        // Tính lại trang nếu cần
-        const newTotalPages = Math.ceil(stationeryItems.length / itemsPerPage);
-        if (currentPage > newTotalPages && newTotalPages > 0) setCurrentPage(newTotalPages);
-        else if (newTotalPages === 0) setCurrentPage(1);
-
-        handleCloseModal();
-    };
-
-    const handleDeleteClick = (id) => {
-        setItemIdToDelete(id);
-        setIsConfirmModalOpen(true);
-    };
-
-    const handleConfirmDelete = () => {
-        // TODO: Gọi API để xóa VPP
-        console.log("Deleting Stationery ID:", itemIdToDelete);
-        const updatedItems = stationeryItems.filter(item => item.id !== itemIdToDelete);
-        setStationeryItems(updatedItems);
-
-        // Tính toán lại trang hiện tại
-        const filteredAfterDelete = updatedItems.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()) /* ...other filters... */);
-        const newTotalPages = Math.ceil(filteredAfterDelete.length / itemsPerPage);
-        if (currentPage > newTotalPages && newTotalPages > 0) {
-            setCurrentPage(newTotalPages);
-        } else if (newTotalPages === 0) {
-            setCurrentPage(1);
-        } else if (currentItemsOnPage.length === 1 && currentPage > 1 && newTotalPages < totalPages) {
-             setCurrentPage(currentPage -1);
-        }
-
-        setIsConfirmModalOpen(false);
-        setItemIdToDelete(null);
-        alert('Xóa văn phòng phẩm thành công!');
-    };
-    
-    const handleViewDetails = (item) => {
-        // Tạm thời alert, bạn có thể tạo StationeryDetailsView.js tương tự BookDetailsView
-        alert(`Xem chi tiết: ${item.name}\nMô tả: ${item.description}\nGiá: ${item.price}\nTồn kho: ${item.stock_quantity}\nNCC: ${item.supplier_name || item.supplier_id}`);
-    };
-
-    const resetAdvancedFilters = () => {
-        setFilterSupplierSt(null);
-        setFilterMinStockSt('');
+    // Event handlers
+    const handleSearch = (value) => {
+        setFilters(prev => ({ ...prev, searchTerm: value }));
         setCurrentPage(1);
     };
 
+    const handleFilterChange = (field, value) => {
+        setFilters(prev => ({ ...prev, [field]: value }));
+        setCurrentPage(1);
+    };
+
+    const resetFilters = () => {
+        setFilters({
+            searchTerm: '',
+            supplier: null,
+            minStock: '',
+            sortBy: 'created_at',
+            sortOrder: 'desc'
+        });
+        setCurrentPage(1);
+        form.resetFields();
+    };
+
+    const openModal = (mode, item = null) => {
+        setModalMode(mode);
+        setCurrentStationery(item || initialStationeryForm);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setCurrentStationery(initialStationeryForm);
+    };
+
+    const handleSubmit = async (formData) => {
+        setIsLoading(true);
+        try {
+            if (modalMode === 'add') {
+                await stationeryService.createStationeryItem(storeId, formData);
+                message.success('Thêm văn phòng phẩm thành công!');
+            } else {
+                await stationeryService.updateStationeryItem(storeId, currentStationery.id, formData);
+                message.success('Cập nhật văn phòng phẩm thành công!');
+            }
+            closeModal();
+            // Refresh data
+            const currentFilters = { ...filters };
+            setFilters(currentFilters);
+        } catch (err) {
+            message.error(err.message || 'Có lỗi xảy ra khi xử lý yêu cầu.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDelete = (itemId) => {
+        setItemIdToDelete(itemId);
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        setIsLoading(true);
+        try {
+            await stationeryService.deleteStationeryItem(storeId, itemIdToDelete);
+            message.success('Xóa văn phòng phẩm thành công!');
+            setIsConfirmModalOpen(false);
+            // Refresh data
+            const currentFilters = { ...filters };
+            setFilters(currentFilters);
+        } catch (err) {
+            message.error(err.message || 'Có lỗi xảy ra khi xóa văn phòng phẩm.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handlePageChange = (page, pageSize) => {
+        setCurrentPage(page);
+        setPageSize(pageSize);
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('page', page.toString());
+        newParams.set('limit', pageSize.toString());
+        setSearchParams(newParams);
+    };
+
+    const handleViewDetails = (item) => {
+        setSelectedStationery(item);
+        setIsDetailModalOpen(true);
+    };
+
+    const closeDetailModal = () => {
+        setIsDetailModalOpen(false);
+        setSelectedStationery(null);
+    };
 
     return (
         <div className={styles.pageContainer}>
-            <div className={styles.pageHeader}>
-                <h1>Quản Lý Văn Phòng Phẩm</h1>
-                {/* Nút Thêm Mới nằm ở thanh controls bên dưới */}
-            </div>
-
-            <div className={styles.mainFilterControls}>
-                <div className={styles.searchWrapper}>
-                    <FaSearch className={styles.searchIcon} />
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm VPP (tên, mã)..."
-                        value={searchTerm}
-                        onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                        className={styles.mainSearchInput}
-                    />
-                </div>
-                 <button
-                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                    className={`${styles.btn} ${styles.btnToggleFilter}`}
-                >
-                    <FaFilter /> Lọc VPP {showAdvancedFilters ? <FaChevronUp /> : <FaChevronDown />}
-                </button>
-                <button
-                    className={`${styles.btn} ${styles.btnPrimary}`}
-                    onClick={() => handleOpenModal('add')}
-                    style={{marginLeft: 'auto'}} /* Đẩy nút Thêm Mới sang phải */
-                >
-                    <FaPlus /> Thêm VPP Mới
-                </button>
-            </div>
-
-            {showAdvancedFilters && (
-                <div className={`${styles.advancedFilterBar} ${showAdvancedFilters ? styles.open : ''}`}>
-                    <h4 className={styles.advancedFilterTitle}>Lọc văn phòng phẩm:</h4>
-                    <div className={styles.filterGrid}>
-                        <Select
-                            options={sampleSuppliersForStationery}
-                            value={filterSupplierSt}
-                            onChange={val => {setFilterSupplierSt(val); setCurrentPage(1);}}
-                            placeholder="Nhà cung cấp"
-                            isClearable
-                            className={`${styles.filterControl} react-select-container`}
-                            classNamePrefix="react-select"
+            <Row gutter={[16, 16]} className={styles.statsSection}>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Tổng số VPP"
+                            value={statistics.totalItems}
+                            prefix={<ContainerOutlined />}
                         />
-                        <input
-                            type="number"
-                            placeholder="Tồn kho từ"
-                            value={filterMinStockSt}
-                            onChange={e => {setFilterMinStockSt(e.target.value); setCurrentPage(1);}}
-                            className={styles.filterControl}
-                            min="0"
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Tổng giá trị"
+                            value={statistics.totalValue}
+                            prefix={<DollarOutlined />}
+                            formatter={(value) => new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                            }).format(value)}
                         />
-                    </div>
-                    <div className={styles.filterActions}>
-                        <button onClick={resetAdvancedFilters} className={`${styles.btn} ${styles.btnSecondary}`}>Xóa bộ lọc</button>
-                    </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card>
+                        <Statistic
+                            title="Sắp hết hàng"
+                            value={statistics.lowStock}
+                            prefix={<TagsOutlined />}
+                            valueStyle={{ color: statistics.lowStock > 0 ? '#cf1322' : '#3f8600' }}
+                        />
+                    </Card>
+                </Col>
+            </Row>
+
+            <Divider />
+
+            <Card>
+                <div className={styles.tableHeader}>
+                    
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Row gutter={[16, 16]} align="middle" justify="space-between">
+                            <Col xs={24} sm={16} md={12} lg={8}>
+                                <Input
+                                    placeholder="Tìm kiếm văn phòng phẩm..."
+                                    prefix={<SearchOutlined />}
+                                    value={filters.searchTerm}
+                                    onChange={e => handleFilterChange('searchTerm', e.target.value)}
+                                    style={{ width: '100%' }}
+                                />
+                            </Col>
+                            <Col xs={24} sm={8} md={12} lg={16} style={{ textAlign: 'right' }}>
+                                <Space>
+                                    <Button
+                                        icon={showAdvancedFilters ? <UpOutlined /> : <DownOutlined />}
+                                        onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                                    >
+                                        Bộ lọc nâng cao
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        icon={<PlusOutlined />}
+                                        onClick={() => openModal('add')}
+                                    >
+                                        Thêm VPP mới
+                                    </Button>
+                                </Space>
+                            </Col>
+                        </Row>
+
+                        {showAdvancedFilters && (
+                            <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
+                                <Col xs={24} sm={12} md={8} lg={6}>
+                                    <Form.Item label="Nhà cung cấp">
+                                        <Select
+                                            value={filters.supplier}
+                                            onChange={value => handleFilterChange('supplier', value)}
+                                            options={supplierOptions}
+                                            placeholder="Chọn nhà cung cấp"
+                                            allowClear
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col xs={24} sm={12} md={8} lg={6}>
+                                    <Form.Item label="Tồn kho tối thiểu">
+                                        <InputNumber
+                                            value={filters.minStock}
+                                            onChange={value => handleFilterChange('minStock', value)}
+                                            min={0}
+                                            placeholder="Nhập số lượng"
+                                            style={{ width: '100%' }}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col xs={24} sm={12} md={8} lg={6}>
+                                    <Form.Item label=" " className={styles.filterActions}>
+                                        <Button onClick={resetFilters}>Đặt lại bộ lọc</Button>
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                        )}
+                    </Space>
                 </div>
-            )}
 
-            <StationeryTable
-                stationeryItems={currentItemsOnPage}
-                onEdit={handleOpenModal}
-                onDelete={handleDeleteClick}
-                onViewDetails={handleViewDetails} // Truyền hàm xem chi tiết
-            />
-
-            {totalPages > 0 && filteredItems.length > itemsPerPage && (
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={filteredItems.length}
+                <StationeryTable
+                    stationeryItems={stationeryItems}
+                    onEdit={openModal}
+                    onDelete={handleDelete}
+                    onViewDetails={handleViewDetails}
+                    loading={isLoading}
+                    pagination={{
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: total,
+                        onChange: handlePageChange,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Tổng ${total} mục`
+                    }}
                 />
-            )}
+            </Card>
 
+            {/* Modals */}
             <StationeryModal
                 isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                onSubmit={handleSubmitStationery}
-                currentStationery={currentStationery}
+                onClose={closeModal}
+                onSubmit={handleSubmit}
                 mode={modalMode}
-                sampleSuppliers={sampleSuppliersForStationery} // Truyền NCC vào modal
+                stationeryData={currentStationery}
+                isLoading={isLoading}
             />
 
             <ConfirmModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={handleConfirmDelete}
-                title="Xác nhận xóa Văn Phòng Phẩm"
-                message={`Bạn có chắc chắn muốn xóa mục "${stationeryItems.find(i => i.id === itemIdToDelete)?.name}" không?`}
+                title="Xác nhận xóa"
+                message="Bạn có chắc chắn muốn xóa văn phòng phẩm này?"
+            />
+
+            {/* New Detail Modal */}
+            <StationeryDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={closeDetailModal}
+                stationeryData={selectedStationery}
             />
         </div>
     );

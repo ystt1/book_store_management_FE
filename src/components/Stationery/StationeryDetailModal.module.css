@@ -1,0 +1,65 @@
+.detailModal {
+    :global(.ant-modal-content) {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    :global(.ant-modal-header) {
+        margin-bottom: 0;
+        padding: 16px 24px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    :global(.ant-modal-body) {
+        padding: 0;
+    }
+}
+
+.detailCard {
+    border: none;
+    background: #fff;
+}
+
+.detailContainer {
+    padding: 0;
+}
+
+.imageSection {
+    margin-bottom: 16px;
+    text-align: center;
+    background: #fafafa;
+    padding: 16px;
+}
+
+.productImage {
+    max-width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.noImage {
+    padding: 32px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    color: #999;
+    font-size: 14px;
+}
+
+.descriptions {
+    margin: 0;
+}
+
+.descriptionItem {
+    :global(.ant-descriptions-item-label) {
+        width: 140px;
+        background-color: #fafafa !important;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    :global(.ant-descriptions-item-content) {
+        font-size: 14px;
+        background-color: #fff !important;
+    }
+} 

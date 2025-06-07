@@ -1,0 +1,63 @@
+.container {
+    padding: 24px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header h2 {
+    margin: 0;
+    color: #333;
+}
+
+/* Table styles */
+.table {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal styles */
+.modal {
+    max-width: 600px;
+}
+
+/* Form styles */
+.form {
+    padding: 24px;
+}
+
+/* Button styles */
+.button {
+    margin-right: 8px;
+}
+
+.buttonPrimary {
+    background-color: #1890ff;
+    border-color: #1890ff;
+    color: white;
+}
+
+.buttonDanger {
+    background-color: #ff4d4f;
+    border-color: #ff4d4f;
+    color: white;
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+/* Error message */
+.error {
+    color: #ff4d4f;
+    margin-bottom: 16px;
+} 

@@ -3,32 +3,37 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Select from 'react-select'; // Dùng cho chọn khách hàng, tìm sản phẩm
 import styles from './OrderFormModal.module.css';
 import { FaTrash, FaPlus, FaMinus } from 'react-icons/fa';
+import { Modal, Form, Input, InputNumber, Button, Space, Row, Col, Table, Tag, Typography } from 'antd';
+import { message } from 'antd';
+
+const { Text } = Typography;
 
 // Dữ liệu mẫu (sẽ được thay bằng API calls hoặc props)
-const sampleCustomers = [
-    { value: 'CUS001', label: 'Nguyễn Văn An - 0901234567' },
-    { value: 'CUS002', label: 'Trần Thị Bình - 0912345678' },
-];
-// sampleProducts sẽ kết hợp sách và văn phòng phẩm
-const sampleProducts = [
-    { id: 'B001', name: 'Sách ReactJS Toàn Tập', type: 'book', price: 220000, stock: 50 },
-    { id: 'B002', name: 'Lập Trình Với Node.js', type: 'book', price: 150000, stock: 30 },
-    { id: 'S001', name: 'Bút bi Thiên Long', type: 'stationery', price: 5000, stock: 1000 },
-    { id: 'S002', name: 'Vở kẻ ngang Campus', type: 'stationery', price: 12000, stock: 500 },
-];
 
 
-const OrderFormModal = ({ isOpen, onClose, onSubmit, currentOrder, mode }) => {
+const OrderFormModal = ({
+    isOpen,
+    onClose,
+    onSubmit,
+    currentOrder,
+    mode,
+    customerOptions,
+    onCustomerSearch,
+    isLoadingCustomers,
+    sampleProducts
+}) => {
+    const [form] = Form.useForm();
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [orderItems, setOrderItems] = useState([]); // [{product: {id, name, price, type, stock}, quantity: 1, subtotal: price}]
     const [productSearchTerm, setProductSearchTerm] = useState('');
     const [discount, setDiscount] = useState(0); // Theo % hoặc giá trị cố định
     const [taxRate, setTaxRate] = useState(10); // Giả sử thuế 10%
-
+    console.log("sampleProducts",sampleProducts);
+    
     useEffect(() => {
         if (isOpen && currentOrder && mode === 'edit') {
             // Tìm khách hàng tương ứng từ sampleCustomers (trong thực tế, currentOrder.customer sẽ là object)
-            setSelectedCustomer(sampleCustomers.find(c => c.value === currentOrder.customer_id) || null);
+            setSelectedCustomer(customerOptions.find(c => c.value === currentOrder.customer_id) || null);
             // Map order_items từ API sang định dạng của orderItems state
             const items = currentOrder.items?.map(apiItem => {
                 const product = sampleProducts.find(p => p.id === apiItem.product_id && p.type === apiItem.product_type);
@@ -55,9 +60,21 @@ const OrderFormModal = ({ isOpen, onClose, onSubmit, currentOrder, mode }) => {
     };
 
     const handleAddProduct = (selectedOption) => {
-        if (!selectedOption || !selectedOption.product) return;
-        const product = selectedOption.product;
-        const existingItemIndex = orderItems.findIndex(item => item.product.id === product.id && item.product.type === product.type);
+        console.log("selectedOption",selectedOption);
+        if (!selectedOption) return;
+        
+        const product = {
+            id: selectedOption.value,
+            type: selectedOption.type,
+            name: selectedOption.name,
+            price: selectedOption.price,
+            stock: selectedOption.stock
+        };
+        
+        const existingItemIndex = orderItems.findIndex(item => 
+            item.product.id === product.id && 
+            item.product.type === product.type
+        );
 
         if (existingItemIndex > -1) {
             // Tăng số lượng nếu sản phẩm đã có và còn tồn kho
@@ -72,12 +89,15 @@ const OrderFormModal = ({ isOpen, onClose, onSubmit, currentOrder, mode }) => {
         } else {
             // Thêm sản phẩm mới nếu còn tồn kho
             if (product.stock > 0) {
-                setOrderItems([...orderItems, { product, quantity: 1, subtotal: product.price }]);
+                setOrderItems([...orderItems, { 
+                    product, 
+                    quantity: 1, 
+                    subtotal: product.price 
+                }]);
             } else {
                 alert(`"${product.name}" đã hết hàng!`);
             }
         }
-        setProductSearchTerm(''); // Reset ô tìm kiếm
     };
 
     const handleQuantityChange = (index, newQuantity) => {
@@ -85,7 +105,7 @@ const OrderFormModal = ({ isOpen, onClose, onSubmit, currentOrder, mode }) => {
         const item = updatedItems[index];
         const product = item.product;
         const quantity = parseInt(newQuantity, 10);
-
+      
         if (quantity > 0 && quantity <= product.stock) {
             item.quantity = quantity;
             item.subtotal = product.price * quantity;
@@ -120,150 +140,235 @@ const OrderFormModal = ({ isOpen, onClose, onSubmit, currentOrder, mode }) => {
 
     const totalAmount = amountAfterDiscount + taxAmount;
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!selectedCustomer) {
-            alert("Vui lòng chọn khách hàng!");
+    const handleSubmit = (formValues) => {
+        console.log("formValues",orderItems);
+        if (orderItems.length === 0) {
+            message.error("Vui lòng thêm ít nhất một sản phẩm vào đơn hàng!");
             return;
         }
-        if (orderItems.length === 0) {
-            alert("Vui lòng thêm ít nhất một sản phẩm vào đơn hàng!");
-            return;
+        console.log("selectedCustomer",selectedCustomer);
+
+        // Xây dựng payload (orderData) đúng chuẩn với backend schema
+        const orderData = {
+            // Thông tin khách hàng
+            customer_id: selectedCustomer ? selectedCustomer.value : null,
+            customer_name: selectedCustomer ? selectedCustomer.label : "Khách lẻ",
+            customer_phone: selectedCustomer ? selectedCustomer.customer.phone : "N/A",
+            customer_email: selectedCustomer ? selectedCustomer.customer.email : "",
+            customer_address: selectedCustomer ? selectedCustomer.customer.address : "N/A",
+            
+            // Map items từ orderItems sang đúng cấu trúc backend yêu cầu
+            items: orderItems.map(item => ({
+                product_id: item.product.id,       // ID sản phẩm
+                product_type: item.product.type,   // Loại sản phẩm
+                price: item.product.price,         // Giá gốc
+                product_name: item.product.name,   // Tên sản phẩm
+                quantity: item.quantity            // Số lượng
+            })),
+
+            // Thông tin tài chính
+            total_amount: totalAmount,
+            subtotal_amount: subtotalAmount,
+            discount_amount: discountAmount,
+            tax_amount: taxAmount,
+            discount_percentage: parseFloat(discount),
+            tax_rate_percentage: parseFloat(taxRate),
+            
+            // Thông tin trạng thái
+            status: 'pending',
+            payment_method: 'cash',
+            payment_status: 'pending',
+            order_date: new Date().toISOString(),
+
+            notes: formValues.notes || ''
+        };
+        
+        // Thêm ID nếu là mode edit
+        if (mode === 'edit' && currentOrder) {
+            orderData.id = currentOrder._id;
         }
 
-        const orderData = {
-            customer_id: selectedCustomer.value,
-            items: orderItems.map(item => ({
-                product_id: item.product.id,
-                product_type: item.product.type, // 'book' or 'stationery'
-                quantity: item.quantity,
-                unit_price: item.product.price,
-            })),
-            subtotal_amount: subtotalAmount,
-            discount_percentage: parseFloat(discount), // Gửi % nếu backend cần
-            discount_amount: discountAmount,
-            tax_rate_percentage: parseFloat(taxRate), // Gửi %
-            tax_amount: taxAmount,
-            total_amount: totalAmount,
-            order_date: new Date().toISOString(), // Ngày hiện tại
-            status: 'pending', // Trạng thái ban đầu
-        };
-        if (mode === 'edit' && currentOrder) {
-            orderData.id = currentOrder.id; // Thêm id cho đơn hàng sửa
-        }
+        console.log('Dữ liệu đơn hàng gửi đi:', orderData)
+        
         onSubmit(orderData);
     };
 
+    const columns = [
+        {
+            title: 'Sản phẩm',
+            dataIndex: ['product', 'name'],
+            key: 'name',
+            width: '30%',
+        },
+        {
+            title: 'Đơn giá',
+            dataIndex: ['product', 'price'],
+            key: 'price',
+            width: '20%',
+            render: (price) => (
+                <Text>{price.toLocaleString()} VNĐ</Text>
+            ),
+        },
+        {
+            title: 'Số lượng',
+            key: 'quantity',
+            width: '25%',
+            render: (_, record, index) => (
+                <Space>
+                    <Button 
+                        icon={<FaMinus/>} 
+                        onClick={() => handleQuantityChange(index, record.quantity - 1)}
+                        disabled={record.quantity <= 1}
+                        size="small"
+                    />
+                    <InputNumber
+                        min={1}
+                        max={record.product.stock}
+                        value={record.quantity}
+                        onChange={(value) => handleQuantityChange(index, value)}
+                        style={{ width: 60 }}
+                    />
+                    <Button 
+                        icon={<FaPlus/>} 
+                        onClick={() => handleQuantityChange(index, record.quantity + 1)}
+                        disabled={record.quantity >= record.product.stock}
+                        size="small"
+                    />
+                </Space>
+            ),
+        },
+        {
+            title: 'Thành tiền',
+            dataIndex: 'subtotal',
+            key: 'subtotal',
+            width: '15%',
+            render: (subtotal) => (
+                <Text strong>{subtotal.toLocaleString()} VNĐ</Text>
+            ),
+        },
+        {
+            title: '',
+            key: 'action',
+            width: '10%',
+            render: (_, record, index) => (
+                <Button
+                    type="text"
+                    danger
+                    icon={<FaTrash />}
+                    onClick={() => handleRemoveItem(index)}
+                />
+            ),
+        },
+    ];
 
     if (!isOpen) return null;
 
     return (
-        <div className={styles.overlay}>
-            <div className={styles.modal}>
-                <h3 className={styles.title}>{mode === 'add' ? 'Tạo Đơn Hàng Mới' : 'Chỉnh Sửa Đơn Hàng'}</h3>
-                <form onSubmit={handleSubmit} className={styles.orderForm}>
-                    <div className={styles.formSection}>
-                        <h4>Thông tin Khách hàng</h4>
-                        <Select
-                            options={sampleCustomers}
-                            value={selectedCustomer}
-                            onChange={setSelectedCustomer}
-                            placeholder="Chọn hoặc tìm khách hàng..."
-                            isClearable
-                            classNamePrefix="react-select"
-                            className={`${styles.customerSelect} react-select-container`}
+        <Modal
+            title={mode === 'edit' ? 'Sửa đơn hàng' : 'Tạo đơn hàng mới'}
+            open={isOpen}
+            onCancel={onClose}
+            footer={null}
+            width={800}
+        >
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleSubmit}
+                initialValues={currentOrder}
+            >
+                <Form.Item
+                    name="customer_id"
+                    label="Khách hàng"
+                    rules={[{ required: true, message: 'Vui lòng chọn khách hàng' }]}
+                >
+                    <Select
+                        showSearch
+                        onChange={(value) => {
+                           
+                            setSelectedCustomer(customerOptions.find(c => c.value === value.value) || null);
+                            
+                        }}
+                        placeholder="Tìm kiếm khách hàng"
+                        filterOption={false}
+                        onSearch={onCustomerSearch}
+                        loading={isLoadingCustomers}
+                        options={customerOptions}
+                        notFoundContent={isLoadingCustomers ? 'Đang tìm kiếm...' : 'Không tìm thấy khách hàng'}
+                    />
+                </Form.Item>
+
+                <Form.Item label="Thêm sản phẩm">
+                    <Select
+                        options={sampleProducts}
+                        value={null}
+                        onChange={handleAddProduct}
+                        placeholder="Tìm sản phẩm (sách, văn phòng phẩm)..."
+                        classNamePrefix="react-select"
+                        isSearchable={true}
+                        isClearable={true}
+                    />
+                </Form.Item>
+
+                {orderItems.length > 0 && (
+                    <>
+                        <Table
+                            columns={columns}
+                            dataSource={orderItems}
+                            pagination={false}
+                            rowKey={(record, index) => `${record.product.id}-${record.product.type}-${index}`}
                         />
-                    </div>
 
-                    <div className={styles.formSection}>
-                        <h4>Thêm Sản phẩm</h4>
-                        <Select
-                            options={sampleProducts.filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase())) // Chỉ filter khi gõ
-                                .map(p => ({ value: p.id, label: `${p.name} (${p.price.toLocaleString()} VNĐ) - Tồn: ${p.stock}`, product: p }))
-                            }
-                            onInputChange={(value) => setProductSearchTerm(value)}
-                            inputValue={productSearchTerm}
-                            onChange={handleAddProduct}
-                            placeholder="Tìm sản phẩm (sách, văn phòng phẩm)..."
-                            classNamePrefix="react-select"
-                            className={`${styles.productSelect} react-select-container`}
-                            value={null} // Reset select sau khi chọn
-                        />
-                    </div>
+                        <Row gutter={16} style={{ marginTop: 24 }}>
+                            <Col span={12}>
+                                <Form.Item label="Giảm giá (%)">
+                                    <InputNumber
+                                        value={discount}
+                                        onChange={(value) => setDiscount(parseFloat(value) || 0)}
+                                        min={0}
+                                        max={100}
+                                        style={{ width: '100%' }}
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item label="Thuế VAT (%)">
+                                    <InputNumber
+                                        value={taxRate}
+                                        onChange={(value) => setTaxRate(parseFloat(value) || 0)}
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
 
-                    {orderItems.length > 0 && (
-                        <div className={styles.formSection}>
-                            <h4>Chi tiết Đơn hàng</h4>
-                            <div className={styles.orderItemsTableContainer}>
-                                <table className={styles.orderItemsTable}>
-                                    <thead>
-                                        <tr>
-                                            <th>Sản phẩm</th>
-                                            <th>Đơn giá</th>
-                                            <th className={styles.quantityHeader}>Số lượng</th>
-                                            <th>Thành tiền</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {orderItems.map((item, index) => (
-                                            <tr key={`${item.product.id}-${item.product.type}-${index}`}>
-                                                <td>{item.product.name}</td>
-                                                <td className={styles.priceCell}>{item.product.price.toLocaleString()}</td>
-                                                <td className={styles.quantityCell}>
-                                                    <button type="button" onClick={() => handleQuantityChange(index, item.quantity - 1)} disabled={item.quantity <= 1} className={styles.quantityBtn}><FaMinus/></button>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        max={item.product.stock}
-                                                        value={item.quantity}
-                                                        onChange={(e) => handleQuantityChange(index, e.target.value)}
-                                                        className={styles.quantityInput}
-                                                    />
-                                                    <button type="button" onClick={() => handleQuantityChange(index, item.quantity + 1)} disabled={item.quantity >= item.product.stock} className={styles.quantityBtn}><FaPlus/></button>
-                                                </td>
-                                                <td className={styles.priceCell}>{item.subtotal.toLocaleString()}</td>
-                                                <td>
-                                                    <button type="button" onClick={() => handleRemoveItem(index)} className={styles.removeItemBtn} title="Xóa sản phẩm"><FaTrash /></button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
+                        <Row justify="end" style={{ marginTop: 24 }}>
+                            <Col>
+                                <Space direction="vertical" align="end">
+                                    <Text>Tổng tiền hàng: {subtotalAmount.toLocaleString()} VNĐ</Text>
+                                    <Text>Giảm giá: -{discountAmount.toLocaleString()} VNĐ</Text>
+                                    <Text>Sau giảm giá: {amountAfterDiscount.toLocaleString()} VNĐ</Text>
+                                    <Text>Thuế VAT: +{taxAmount.toLocaleString()} VNĐ</Text>
+                                    <Text strong style={{ fontSize: '16px' }}>
+                                        Thành tiền: {totalAmount.toLocaleString()} VNĐ
+                                    </Text>
+                                </Space>
+                            </Col>
+                        </Row>
+                    </>
+                )}
 
-                    <div className={`${styles.formSection} ${styles.summarySection}`}>
-                        <h4>Tổng kết Đơn hàng</h4>
-                        <div className={styles.summaryRow}><span>Tổng tiền hàng:</span> <span>{subtotalAmount.toLocaleString()} VNĐ</span></div>
-                        <div className={styles.summaryRowInput}>
-                            <label htmlFor="discount">Giảm giá (%):</label>
-                            <input type="number" id="discount" value={discount} onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} min="0" max="100" className={styles.summaryInput} />
-                            <span>(-{discountAmount.toLocaleString()} VNĐ)</span>
-                        </div>
-                         <div className={styles.summaryRow}><span>Sau giảm giá:</span> <span>{amountAfterDiscount.toLocaleString()} VNĐ</span></div>
-                        <div className={styles.summaryRowInput}>
-                            <label htmlFor="taxRate">Thuế VAT (%):</label>
-                             <input type="number" id="taxRate" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} min="0" className={styles.summaryInput} />
-                            <span>(+{taxAmount.toLocaleString()} VNĐ)</span>
-                        </div>
-                        <hr className={styles.summaryDivider}/>
-                        <div className={`${styles.summaryRow} ${styles.totalRow}`}><span>Thành tiền:</span> <span>{totalAmount.toLocaleString()} VNĐ</span></div>
-                    </div>
-
-
-                    <div className={styles.actions}>
-                        <button type="submit" className={`${styles.btn} ${styles.btnSubmit}`}>
-                            {mode === 'add' ? 'Tạo Đơn Hàng' : 'Cập Nhật Đơn Hàng'}
-                        </button>
-                        <button type="button" onClick={onClose} className={`${styles.btn} ${styles.btnCancel}`}>
-                            Hủy
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <Form.Item>
+                    <Space>
+                        <Button type="primary" htmlType="submit">
+                            {mode === 'edit' ? 'Cập nhật' : 'Tạo đơn hàng'}
+                        </Button>
+                        <Button onClick={onClose}>Hủy</Button>
+                    </Space>
+                </Form.Item>
+            </Form>
+        </Modal>
     );
 };
 

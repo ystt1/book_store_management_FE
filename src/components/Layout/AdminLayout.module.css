@@ -1,0 +1,150 @@
+/* src/components/Layout/Layout.module.css */
+.appContainer {
+    display: flex; /* Sidebar và mainContent sẽ nằm cạnh nhau */
+    height: 100vh;
+    overflow: hidden;
+}
+
+.mainContent {
+    flex-grow: 1;
+    padding: 25px;
+    background-color: #ecf0f1;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease-in-out;
+    margin-left: 260px; /* Chiều rộng mặc định của sidebar mở */
+}
+
+.mainContent.mainContentFull { /* Khi sidebar thu gọn */
+    margin-left: 70px; /* Chiều rộng của sidebar thu gọn */
+}
+
+/* Nếu bạn muốn hiệu ứng mượt hơn cho mainContent khi sidebar cố định hoàn toàn và không ảnh hưởng đến flow */
+/* .mainContentShifted {
+    margin-left: 260px;
+} */
+
+.adminLayout {
+    min-height: 100vh;
+}
+
+.sider {
+    box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+    position: fixed;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: all 0.2s;
+}
+
+.logo {
+    height: 64px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.logoImage {
+    height: 32px;
+    width: auto;
+}
+
+.logoText {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1890ff;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.menu {
+    border-right: none;
+}
+
+.header {
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    z-index: 999;
+    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+    transition: all 0.2s;
+}
+
+.trigger {
+    font-size: 18px;
+    padding: 0 12px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.trigger:hover {
+    color: #1890ff;
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.userInfo:hover {
+    background-color: rgba(0, 0, 0, 0.025);
+}
+
+.avatar {
+    background-color: #1890ff;
+}
+
+.userName {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.85);
+}
+
+.content {
+    margin: 88px 24px 24px 274px;
+    padding: 24px;
+    min-height: 280px;
+    transition: all 0.2s;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .sider {
+        position: absolute;
+    }
+    
+    .header {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    .content {
+        margin: 88px 16px 16px;
+        padding: 16px;
+    }
+}
+
+/* Collapsed styles */
+:global(.ant-layout-sider-collapsed) + .ant-layout .header {
+    width: calc(100% - 80px);
+    margin-left: 80px;
+}
+
+:global(.ant-layout-sider-collapsed) + .ant-layout .content {
+    margin-left: 104px;
+}

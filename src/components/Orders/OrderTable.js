@@ -1,140 +1,267 @@
 // src/components/Orders/OrderTable.js
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { Table, Space, Button, Tooltip, Typography, Select as AntSelect } from 'antd';
+import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
+import Select from 'react-select';
 import styles from './OrderTable.module.css';
-import Select from 'react-select'; // Dùng để thay đổi trạng thái nhanh
+
+const { Text } = Typography;
 
 const OrderTable = ({
     orders,
-    onViewDetails,
-    onEditOrder,
     onDeleteOrder,
     onUpdateStatus,
-    orderStatusOptions // Mảng các tùy chọn trạng thái
+    orderStatusOptions,
+    statusLabels,
+    statusColors,
+    isAdminView,
+    loading,
+    pagination
 }) => {
+    const [expandedOrderId, setExpandedOrderId] = useState(null);
 
-    const getStatusLabel = (statusValue) => {
-        const option = orderStatusOptions.find(opt => opt.value === statusValue);
-        return option ? option.label : statusValue;
-    };
-
-    const getStatusColor = (statusValue) => {
-        // Trả về class màu dựa trên trạng thái
-        switch (statusValue) {
-            case 'pending': return styles.statusPending;
-            case 'processing': return styles.statusProcessing;
-            case 'shipped': return styles.statusShipped;
-            case 'completed': return styles.statusCompleted;
-            case 'cancelled': return styles.statusCancelled;
-            case 'refunded': return styles.statusRefunded;
-            default: return '';
+    const handleStatusChange = async (orderId, selectedOption) => {
+        if (selectedOption && selectedOption.value) {
+            try {
+                await onUpdateStatus(orderId, selectedOption.value);
+            } catch (error) {
+                console.error('Error updating status:', error);
+            }
         }
     };
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return {
+            date: date.toLocaleDateString('vi-VN'),
+            time: date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+        };
+    };
+
+    const renderOrderDetails = (order) => {
+        if (!order.items || order.items.length === 0) return null;
+
+        return (
+            <div className={styles.orderDetails}>
+                <div className={styles.detailsHeader}>
+                    <h4>Chi tiết đơn hàng</h4>
+                </div>
+                <Table
+                    dataSource={order.items}
+                    pagination={false}
+                    className={styles.detailsTable}
+                    columns={[
+                        {
+                            title: 'Sản phẩm',
+                            dataIndex: 'product_name',
+                            key: 'product_name'
+                        },
+                        {
+                            title: 'Loại',
+                            dataIndex: 'product_type',
+                            key: 'product_type',
+                            render: (type) => type === 'book' ? 'Sách' : 'Văn phòng phẩm'
+                        },
+                        {
+                            title: 'Số lượng',
+                            dataIndex: 'quantity',
+                            key: 'quantity'
+                        },
+                        {
+                            title: 'Đơn giá',
+                            dataIndex: 'price',
+                            key: 'price',
+                            render: (price) => `${price?.toLocaleString('vi-VN')} VNĐ`
+                        },
+                        {
+                            title: 'Giảm giá',
+                            dataIndex: 'discount',
+                            key: 'discount',
+                            render: (discount) => `${discount || 0}%`
+                        },
+                        {
+                            title: 'Thuế',
+                            dataIndex: 'tax',
+                            key: 'tax',
+                            render: (tax) => `${tax || 0}%`
+                        },
+                        {
+                            title: 'Thành tiền',
+                            dataIndex: 'total',
+                            key: 'total',
+                            render: (total) => `${total?.toLocaleString('vi-VN')} VNĐ`
+                        }
+                    ]}
+                    summary={() => (
+                        <Table.Summary>
+                            <Table.Summary.Row>
+                                <Table.Summary.Cell colSpan={6} className={styles.totalLabel}>
+                                    Tổng tiền:
+                                </Table.Summary.Cell>
+                                <Table.Summary.Cell className={styles.totalAmount}>
+                                    {order.total_amount?.toLocaleString('vi-VN')} VNĐ
+                                </Table.Summary.Cell>
+                            </Table.Summary.Row>
+                        </Table.Summary>
+                    )}
+                />
+            </div>
+        );
+    };
+
+    const columns = useMemo(() => [
+        {
+            title: 'Mã ĐH',
+            dataIndex: '_id',
+            key: '_id',
+            render: (id) => (
+                <Text
+                    className={styles.orderIdCell}
+                    onClick={() => setExpandedOrderId(expandedOrderId === id ? null : id)}
+                >
+                    {id}
+                </Text>
+            )
+        },
+        isAdminView && {
+            title: 'Cửa hàng',
+            dataIndex: 'store',
+            key: 'store',
+            render: (store) => (
+                <div className={styles.storeInfo}>
+                    <div>{store?.name || 'N/A'}</div>
+                    <div className={styles.storeAddress}>{store?.address || 'N/A'}</div>
+                </div>
+            )
+        },
+        {
+            title: 'Khách Hàng',
+            dataIndex: 'customer',
+            key: 'customer',
+            render: (customer, record) => (
+                <div className={styles.customerInfo}>
+                    {customer?.name || record.customer_name || 'N/A'}
+                </div>
+            )
+        },
+        {
+            title: 'Ngày Tạo',
+            dataIndex: 'created_at',
+            key: 'created_at',
+            render: (date) => {
+                const { date: formattedDate, time } = formatDate(date);
+                return (
+                    <>
+                        {formattedDate}
+                        <br />
+                        <span className={styles.timePart}>{time}</span>
+                    </>
+                );
+            }
+        },
+        {
+            title: 'Tổng Tiền',
+            dataIndex: 'total_amount',
+            key: 'total_amount',
+            render: (amount) => (
+                <Text className={styles.amountCell}>
+                    {amount?.toLocaleString('vi-VN')} VNĐ
+                </Text>
+            )
+        },
+        {
+            title: 'Người Tạo',
+            dataIndex: 'created_by',
+            key: 'created_by_name',
+            render: (createdBy, record) => {
+                const { time } = formatDate(record.created_at);
+                return (
+                    <div className={styles.creatorInfo}>
+                        <div>{createdBy?.fullName || 'N/A'}</div>
+                    </div>
+                );
+            }
+        },
+        {
+            title: 'Trạng Thái',
+            dataIndex: 'status',
+            key: 'status',
+            fixed: 'right',
+            width: 150,
+            render: (status, record) => (
+                <Select
+                    options={orderStatusOptions}
+                    value={orderStatusOptions.find(opt => opt.value === status)}
+                    onChange={(selectedOption) => handleStatusChange(record._id, selectedOption)}
+                    isDisabled={status === 'completed' || status === 'cancelled'}
+                    className={`${styles.statusSelect}`}
+                    classNamePrefix="react-select"
+                    menuPlacement="auto"
+                    menuPortalTarget={document.body}
+                    styles={{
+                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                        control: (base) => ({
+                            ...base,
+                            minHeight: '30px',
+                            height: '30px',
+                            fontSize: '0.85rem',
+                            backgroundColor: statusColors[status] || '#ffffff',
+                            color: '#ffffff'
+                        }),
+                        singleValue: (base) => ({
+                            ...base,
+                            color: '#ffffff'
+                        }),
+                        valueContainer: (base) => ({
+                            ...base,
+                            height: '30px',
+                            padding: '0 6px'
+                        }),
+                        input: (base) => ({
+                            ...base,
+                            margin: '0px',
+                        }),
+                        indicatorSeparator: () => ({
+                            display: 'none',
+                        }),
+                        indicatorsContainer: (base) => ({
+                            ...base,
+                            height: '30px',
+                        }),
+                        option: (base, state) => ({
+                            ...base,
+                            fontSize: '0.85rem',
+                            padding: '6px 10px',
+                            backgroundColor: state.isSelected ? '#007bff' : (state.isFocused ? '#e9ecef' : base.backgroundColor),
+                            color: state.isSelected ? 'white' : base.color,
+                        })
+                    }}
+                />
+            )
+        }
+    ].filter(Boolean), [expandedOrderId, onDeleteOrder, isAdminView, orderStatusOptions, statusColors]);
 
     return (
         <div className={styles.tableContainer}>
-            <table className={styles.orderTable}>
-                <thead>
-                    <tr>
-                        <th>Mã ĐH</th>
-                        <th>Khách Hàng</th>
-                        <th>Ngày Tạo</th>
-                        <th>Tổng Tiền</th>
-                        <th>Trạng Thái</th>
-                        <th>Người Tạo</th>
-                        <th>Hành Động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {orders && orders.length > 0 ? (
-                        orders.map(order => (
-                            <tr key={order.id}>
-                                <td data-label="Mã ĐH:" className={styles.orderIdCell} onClick={() => onViewDetails(order)}>
-                                    {order.id}
-                                </td>
-                                <td data-label="Khách Hàng:">{order.customer_name || 'N/A'}</td>
-                                <td data-label="Ngày Tạo:">
-                                    {new Date(order.order_date).toLocaleDateString('vi-VN')} <br/>
-                                    <span className={styles.timePart}>{new Date(order.order_date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit'})}</span>
-                                </td>
-                                <td data-label="Tổng Tiền:" className={styles.amountCell}>
-                                    {order.total_amount?.toLocaleString('vi-VN')} VNĐ
-                                </td>
-                                <td data-label="Trạng Thái:" className={styles.statusCell}>
-                                    {/* Tùy chọn: Hiển thị Select để đổi nhanh trạng thái */}
-                                    {onUpdateStatus ? (
-                                        <Select
-                                            options={orderStatusOptions}
-                                            value={orderStatusOptions.find(opt => opt.value === order.status)}
-                                            onChange={(selectedOption) => onUpdateStatus(order.id, selectedOption.value)}
-                                            className={`${styles.statusSelect} react-select-container-table`}
-                                            classNamePrefix="react-select-table"
-                                            menuPlacement="auto" // Để menu không bị cắt
-                                            styles={{ // Custom style cho Select nhỏ hơn
-                                                control: (base) => ({
-                                                    ...base,
-                                                    minHeight: '30px',
-                                                    height: '30px',
-                                                    fontSize: '0.85rem',
-                                                }),
-                                                valueContainer: (base) => ({
-                                                    ...base,
-                                                    height: '30px',
-                                                    padding: '0 6px'
-                                                }),
-                                                input: (base) => ({
-                                                    ...base,
-                                                    margin: '0px',
-                                                }),
-                                                indicatorSeparator: () => ({
-                                                    display: 'none',
-                                                }),
-                                                indicatorsContainer: (base) => ({
-                                                    ...base,
-                                                    height: '30px',
-                                                }),
-                                                option: (base, state) => ({
-                                                    ...base,
-                                                    fontSize: '0.85rem',
-                                                    padding: '6px 10px',
-                                                    backgroundColor: state.isSelected ? '#007bff' : (state.isFocused ? '#e9ecef' : base.backgroundColor),
-                                                    color: state.isSelected ? 'white' : base.color,
-                                                }),
-                                                singleValue: (base) => ({ // Style cho text trạng thái hiển thị
-                                                    ...base,
-                                                    color: '#333' // Hoặc màu dựa trên getStatusColor(order.status) nếu muốn
-                                                })
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className={`${styles.statusBadge} ${getStatusColor(order.status)}`}>
-                                            {getStatusLabel(order.status)}
-                                        </span>
-                                    )}
-                                </td>
-                                <td data-label="Người Tạo:">{order.created_by || 'N/A'}</td>
-                                <td data-label="Hành Động:" className={styles.actionsCell}>
-                                    <button onClick={() => onViewDetails(order)} className={`${styles.btnAction} ${styles.btnView}`} title="Xem chi tiết">👁️</button>
-                                    {/* Chỉ cho phép sửa đơn hàng ở một số trạng thái nhất định, ví dụ 'pending' */}
-                                    {(order.status === 'pending' || order.status === 'processing') && onEditOrder && (
-                                        <button onClick={() => onEditOrder(order)} className={`${styles.btnAction} ${styles.btnEdit}`} title="Sửa đơn hàng">✏️</button>
-                                    )}
-                                    {/* Chỉ cho phép xóa/hủy đơn hàng ở một số trạng thái */}
-                                    {(order.status === 'pending' || order.status === 'processing') && onDeleteOrder && (
-                                        <button onClick={() => onDeleteOrder(order.id)} className={`${styles.btnAction} ${styles.btnDelete}`} title="Hủy/Xóa đơn hàng">🗑️</button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="7" className={styles.noResults}>Không có đơn hàng nào.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            <Table
+                columns={columns}
+                dataSource={orders}
+                rowKey={record => record._id}
+                loading={loading}
+                pagination={pagination}
+                className={styles.orderTable}
+                scroll={{ x: 1200 }}
+                expandable={{
+                    expandedRowKeys: expandedOrderId ? [expandedOrderId] : [],
+                    expandedRowRender: renderOrderDetails,
+                    onExpand: (expanded, record) => setExpandedOrderId(expanded ? record._id : null)
+                }}
+                locale={{
+                    emptyText: 'Không có đơn hàng nào.'
+                }}
+            />
         </div>
     );
 };
 
-export default OrderTable;
+export default React.memo(OrderTable);
