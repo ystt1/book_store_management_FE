@@ -300,10 +300,15 @@ const GeneralImportOrderPage = () => {
             render: (id) => (
                 <div 
                     className={styles.orderIdCell}
-                    style={{ cursor: 'pointer', color: '#1890ff' }}
+                    style={{ 
+                        cursor: 'pointer', 
+                        color: '#1890ff',
+                        wordBreak: 'break-word',
+                        whiteSpace: 'normal'
+                    }}
                     onClick={() => setExpandedOrderId(expandedOrderId === id ? null : id)}
                 >
-                    {id}
+                    <span style={{ wordBreak: 'break-all' }}>{id}</span>
                     {expandedOrderId === id ? (
                         <CaretUpOutlined style={{ marginLeft: 5 }} />
                     ) : (

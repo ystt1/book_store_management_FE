@@ -1,18 +1,84 @@
 .loginContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background: #f0f2f5;
+    background-color: #f0f2f5;
+}
+
+.videoContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background-color: #000;
+}
+
+.loginCardOverlay {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 20px;
 }
 
 .loginCard {
-    width: 400px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.loginCard :global(.ant-card-head-title) {
+.loginTitle {
     text-align: center;
+    color: #1890ff;
+    margin-bottom: 24px;
     font-size: 24px;
-    font-weight: bold;
+}
+
+.loginButton {
+    width: 100%;
+}
+
+.metricsContainer {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Tùy chỉnh giao diện cho metrics */
+.metricsContainer :global(.ant-statistic) {
+    margin-bottom: 16px;
+}
+
+.metricsContainer :global(.ant-statistic-title) {
+    font-size: 12px;
+    color: #666;
+}
+
+.metricsContainer :global(.ant-statistic-content) {
+    font-size: 14px;
+    color: #1890ff;
+}
+
+/* Hiệu ứng hover cho card */
+.loginCard:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .loginCardOverlay {
+        margin: 0 16px;
+    }
+    
+    .metricsContainer :global(.ant-col) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
 } 
